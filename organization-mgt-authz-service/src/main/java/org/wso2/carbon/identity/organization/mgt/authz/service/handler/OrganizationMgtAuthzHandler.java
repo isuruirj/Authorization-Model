@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package org.wso2.carbon.identity.organization.mgt.authz.service.handler;
 
 import org.apache.commons.lang3.StringUtils;
@@ -14,8 +32,7 @@ import org.wso2.carbon.identity.core.handler.InitConfig;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.organization.mgt.authz.service.OrgMgtAuthorizationContext;
 import org.wso2.carbon.identity.organization.mgt.authz.service.OrganizationMgtAuthorizationManager;
-
-import org.wso2.carbon.user.core.UserStoreException;
+import org.wso2.carbon.user.api.UserStoreException;
 
 import java.util.Arrays;
 import java.util.regex.Pattern;
@@ -66,7 +83,9 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
                 authorizationResult.setAuthorizationStatus(AuthorizationStatus.GRANT);
             }
         } catch (UserStoreException e) {
-            // @TODO
+            String errorMessage = "Error occurred while trying to authorize, " + e.getMessage();
+            log.error(errorMessage);
+            throw new AuthzServiceServerException(errorMessage, e);
         }
         return authorizationResult;
     }
@@ -90,7 +109,7 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
 
     private void validatePermissions(AuthorizationResult authorizationResult, User user, String permissionString,
                                      String orgId, int tenantId)
-            throws UserStoreException {
+            throws org.wso2.carbon.user.api.UserStoreException {
 
         if (RESOURCE_PERMISSION_NONE.equalsIgnoreCase(permissionString)) {
             authorizationResult.setAuthorizationStatus(AuthorizationStatus.GRANT);
