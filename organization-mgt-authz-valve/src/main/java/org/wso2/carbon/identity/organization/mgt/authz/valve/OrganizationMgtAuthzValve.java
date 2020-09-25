@@ -72,6 +72,7 @@ public class OrganizationMgtAuthzValve extends ValveBase {
                 return;
             }
             String requestURI = request.getRequestURI();
+            String QueryString = request.getQueryString();
             AuthorizationContext authorizationContext = new OrgMgtAuthorizationContext();
 
             if (resourceConfigInOrgMgt != null) {

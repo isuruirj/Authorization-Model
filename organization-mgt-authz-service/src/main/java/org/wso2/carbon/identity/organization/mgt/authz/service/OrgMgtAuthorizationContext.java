@@ -32,6 +32,7 @@ public class OrgMgtAuthorizationContext extends AuthorizationContext {
     private String context;
     private String httpMethods;
     private String requestUri;
+    private String queryString;
 
     private User user;
     private String permissionString;
@@ -40,50 +41,62 @@ public class OrgMgtAuthorizationContext extends AuthorizationContext {
     private String tenantDomainFromURLMapping;
 
     public User getUser() {
+
         return user;
     }
 
     public void setUser(User user) {
+
         this.user = user;
     }
 
     public String getPermissionString() {
+
         return permissionString;
     }
 
     public void setPermissionString(String permissionString) {
+
         this.permissionString = permissionString;
     }
 
     public boolean isCrossTenantAllowed() {
+
         return isCrossTenantAllowed;
     }
 
     public void setIsCrossTenantAllowed(boolean isCrossTenantAllowed) {
+
         this.isCrossTenantAllowed = isCrossTenantAllowed;
     }
 
     public String getContext() {
+
         return context;
     }
 
     public void setContext(String context) {
+
         this.context = context;
     }
 
     public String getHttpMethods() {
+
         return httpMethods;
     }
 
     public void setHttpMethods(String httpMethods) {
+
         this.httpMethods = httpMethods;
     }
 
     public String getTenantDomainFromURLMapping() {
+
         return tenantDomainFromURLMapping;
     }
 
     public void setTenantDomainFromURLMapping(String tenantDomainFromURLMapping) {
+
         this.tenantDomainFromURLMapping = tenantDomainFromURLMapping;
     }
 
@@ -108,5 +121,15 @@ public class OrgMgtAuthorizationContext extends AuthorizationContext {
     public void setRequestUri(String requestUri) {
 
         this.requestUri = requestUri;
+    }
+
+    public void setQueryString(String queryString) {
+
+        this.queryString = queryString;
+    }
+
+    public String getQueryString() {
+
+        return queryString;
     }
 }

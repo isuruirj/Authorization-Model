@@ -23,12 +23,18 @@ import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.auth.service.module.ResourceConfig;
 import org.wso2.carbon.identity.auth.service.module.ResourceConfigKey;
 import org.wso2.carbon.identity.auth.service.util.Constants;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.mgt.authz.service.internal.OrganizationMgtAuthzServiceHolder;
 import org.wso2.carbon.identity.organization.mgt.authz.service.model.OrgResourceConfigKey;
+import org.wso2.carbon.user.api.UserRealm;
+import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.service.RealmService;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -196,5 +202,23 @@ public class OrganizationMgtAuthzUtil {
 
         return rootElement.getFirstChildWithName(new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE,
                 localPart));
+    }
+
+    /**
+     * Get the userstore manager for the user.
+     *
+     * @param user User.
+     * @return Userstore manager.
+     */
+    public static UserStoreManager getUserStoreManager(User user) throws org.wso2.carbon.user.api.UserStoreException {
+
+        UserStoreManager userStoreManager = null;
+        RealmService realmService = OrganizationMgtAuthzServiceHolder.getInstance().getRealmService();
+
+        UserRealm tenantUserRealm = realmService.getTenantUserRealm(IdentityTenantUtil.
+                getTenantId(user.getTenantDomain()));
+        userStoreManager = (UserStoreManager) tenantUserRealm.getUserStoreManager();
+
+        return userStoreManager;
     }
 }
