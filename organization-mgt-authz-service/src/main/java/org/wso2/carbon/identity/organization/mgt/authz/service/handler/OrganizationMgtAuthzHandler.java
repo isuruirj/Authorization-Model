@@ -35,7 +35,7 @@ import org.wso2.carbon.identity.organization.mgt.authz.service.OrganizationMgtAu
 import org.wso2.carbon.identity.organization.mgt.authz.service.internal.OrganizationMgtAuthzServiceHolder;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
-import org.wso2.carbon.user.api.UserStoreManager;
+import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -184,10 +184,12 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
             String[] requestUriParts = requestPath.split(URI_SPLITTER);
             String userId = Arrays.asList(requestUriParts)
                     .get((Arrays.asList(requestUriParts).indexOf(SCIM_USERS_RESOURCE)) + 1);
-            RealmService realmService = OrganizationMgtAuthzServiceHolder.getInstance().getRealmService();
-            UserRealm userRealm = realmService.getTenantUserRealm(tenantId);
-            AbstractUserStoreManager carbonUM = (AbstractUserStoreManager) userRealm.getUserStoreManager();
-            orgId = carbonUM.getUserClaimValueWithID(userId, ORGANIZATION_ID_DEFAULT_CLAIM_URI, null);
+            UserStoreManager carbonUM = getUserStoreManager(tenantId);
+            if (carbonUM == null) {
+                throw new UserStoreException("Error while retrieving userstore manager for tenant: " + tenantId);
+            }
+            orgId = ((AbstractUserStoreManager) carbonUM)
+                    .getUserClaimValueWithID(userId, ORGANIZATION_ID_DEFAULT_CLAIM_URI, null);
         }
         return orgId;
     }

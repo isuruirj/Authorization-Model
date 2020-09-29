@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.mgt.authz.service.internal.OrganizationMgtAuthzServiceHolder;
 import org.wso2.carbon.identity.organization.mgt.authz.service.model.OrgResourceConfigKey;
 import org.wso2.carbon.user.api.UserRealm;
+import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -212,13 +213,19 @@ public class OrganizationMgtAuthzUtil {
      */
     public static UserStoreManager getUserStoreManager(User user) throws org.wso2.carbon.user.api.UserStoreException {
 
-        UserStoreManager userStoreManager = null;
         RealmService realmService = OrganizationMgtAuthzServiceHolder.getInstance().getRealmService();
-
         UserRealm tenantUserRealm = realmService.getTenantUserRealm(IdentityTenantUtil.
                 getTenantId(user.getTenantDomain()));
-        userStoreManager = (UserStoreManager) tenantUserRealm.getUserStoreManager();
+        if (IdentityUtil.getPrimaryDomainName().equals(user.getUserStoreDomain()) || user.getUserStoreDomain() == null) {
+            return (UserStoreManager) tenantUserRealm.getUserStoreManager();
+        }
+        return ((UserStoreManager) tenantUserRealm.getUserStoreManager())
+                .getSecondaryUserStoreManager(user.getUserStoreDomain());
+    }
 
-        return userStoreManager;
+    public static UserStoreManager getUserStoreManager(int tenantId) throws UserStoreException {
+        RealmService realmService = OrganizationMgtAuthzServiceHolder.getInstance().getRealmService();
+        UserRealm userRealm = realmService.getTenantUserRealm(tenantId);
+        return (UserStoreManager) userRealm.getUserStoreManager();
     }
 }

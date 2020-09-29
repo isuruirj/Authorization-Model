@@ -90,6 +90,9 @@ public class OrganizationMgtAuthorizationManager {
             throws UserStoreException {
 
         AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) getUserStoreManager(user);
+        if (userStoreManager == null) {
+            throw new UserStoreException("Error while retrieving userstore manager for user :" + user.getUserName());
+        }
         String userID = userStoreManager.getUser(null, user.getUserName()).getUserID();
         boolean isUserAllowed = false;
         String[] permissionParts = resourceId.split(PERMISSION_SPLITTER);
