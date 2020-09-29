@@ -72,7 +72,7 @@ public class OrganizationMgtAuthzValve extends ValveBase {
                 return;
             }
             String requestURI = request.getRequestURI();
-            String QueryString = request.getQueryString();
+            String queryString = request.getQueryString();
             AuthorizationContext authorizationContext = new OrgMgtAuthorizationContext();
 
             if (resourceConfigInOrgMgt != null) {
@@ -99,6 +99,7 @@ public class OrganizationMgtAuthzValve extends ValveBase {
             ((OrgMgtAuthorizationContext) authorizationContext).setRequestUri(requestURI);
             authorizationContext.setHttpMethods(httpMethod);
             authorizationContext.setUser(authenticationContext.getUser());
+            ((OrgMgtAuthorizationContext) authorizationContext).setQueryString(queryString);
             authorizationContext
                     .addParameter(OAUTH2_ALLOWED_SCOPES, authenticationContext.getParameter(OAUTH2_ALLOWED_SCOPES));
             authorizationContext

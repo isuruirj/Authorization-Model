@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.organization.mgt.authz.service;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.application.common.model.User;
-import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.core.persistence.UmPersistenceManager;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 
@@ -118,7 +118,7 @@ public class OrganizationMgtAuthorizationManager {
 
     public static JdbcTemplate getNewTemplate() {
 
-        return new JdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        return new JdbcTemplate(UmPersistenceManager.getInstance().getDataSource());
     }
 
     public static <T> T[] subArray(T[] array, int beg, int end) {

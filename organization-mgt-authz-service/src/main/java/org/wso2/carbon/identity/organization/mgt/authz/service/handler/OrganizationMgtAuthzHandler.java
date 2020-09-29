@@ -45,6 +45,7 @@ import java.util.stream.Stream;
 
 import static org.wso2.carbon.identity.auth.service.util.Constants.OAUTH2_ALLOWED_SCOPES;
 import static org.wso2.carbon.identity.auth.service.util.Constants.OAUTH2_VALIDATE_SCOPE;
+import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.AND;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.CONDITION_SEPARATOR;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.EQ;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.FILTER_START;
@@ -201,16 +202,16 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
         }
         if (Pattern.matches(REGEX_FOR_SCIM_USERS_GET, requestPath) && queryParams != null) {
             String[] queryParamsParts = queryParams.split(QUERY_STRING_SEPARATOR);
-            for (String param : Arrays.asList(queryParams)) {
+            for (String param : Arrays.asList(queryParamsParts)) {
                 if (param.startsWith(FILTER_START)) {
                     String filter = param;
+                    String[] filterConditions = filter.split(AND);
                     StringBuilder filterWithOrgId =
                             new StringBuilder(ORGANIZATION_ID_URI).append(CONDITION_SEPARATOR).append(EQ)
                                     .append(CONDITION_SEPARATOR);
                     StringBuilder filterWithOrgName =
                             new StringBuilder(ORGANIZATION_NAME_URI).append(CONDITION_SEPARATOR).append(EQ)
                                     .append(CONDITION_SEPARATOR);
-
                 }
             }
         }
