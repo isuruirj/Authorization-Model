@@ -28,16 +28,20 @@ import org.wso2.carbon.identity.authz.service.AuthorizationResult;
 import org.wso2.carbon.identity.authz.service.AuthorizationStatus;
 import org.wso2.carbon.identity.authz.service.exception.AuthzServiceServerException;
 import org.wso2.carbon.identity.authz.service.handler.AuthorizationHandler;
+import org.wso2.carbon.identity.authz.service.internal.AuthorizationServiceHolder;
 import org.wso2.carbon.identity.core.handler.InitConfig;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.organization.mgt.authz.service.OrgMgtAuthorizationContext;
 import org.wso2.carbon.identity.organization.mgt.authz.service.OrganizationMgtAuthorizationManager;
+import org.wso2.carbon.identity.organization.mgt.authz.service.internal.OrganizationMgtAuthzServiceComponent;
 import org.wso2.carbon.identity.organization.mgt.authz.service.internal.OrganizationMgtAuthzServiceHolder;
+import org.wso2.carbon.user.api.AuthorizationManager;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.Arrays;
 import java.util.regex.Pattern;
@@ -59,6 +63,7 @@ import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Const
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_SCIM_USERS_GET;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_SCIM_USER_REQUESTS;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_URLS_WITH_ORG_ID;
+import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_SCIM_USERS_WITH_ORG;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.SCIM_USERS_RESOURCE;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.URI_SPLITTER;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.OrganizationMgtAuthzUtil.getUserStoreManager;
@@ -165,8 +170,13 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
             authorizationResult.setAuthorizationStatus(AuthorizationStatus.GRANT);
             return;
         }
+        RealmService realmService = OrganizationMgtAuthzServiceHolder.getInstance().getRealmService();
+        UserRealm tenantUserRealm = realmService.getTenantUserRealm(tenantId);
+        AuthorizationManager authorizationManager = tenantUserRealm.getAuthorizationManager();
         boolean isUserAuthorized = OrganizationMgtAuthorizationManager.getInstance()
-                .isUserAuthorized(user, permissionString, CarbonConstants.UI_PERMISSION_ACTION, tenantId);
+                .isUserAuthorized(user, permissionString, CarbonConstants.UI_PERMISSION_ACTION, tenantId)
+                ||  authorizationManager.isUserAuthorized(UserCoreUtil.addDomainToName(user.getUserName(),
+                user.getUserStoreDomain()), permissionString, CarbonConstants.UI_PERMISSION_ACTION);
         if (isUserAuthorized) {
             authorizationResult.setAuthorizationStatus(AuthorizationStatus.GRANT);
         }
@@ -217,7 +227,6 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
                 }
             }
         }
-
         return canHandle;
     }
 
