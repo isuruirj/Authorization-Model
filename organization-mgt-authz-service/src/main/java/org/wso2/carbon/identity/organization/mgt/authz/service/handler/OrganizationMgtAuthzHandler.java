@@ -96,12 +96,15 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
                     (String[]) authorizationContext.getParameter(OAUTH2_ALLOWED_SCOPES);
             boolean validateScope = authorizationContext.getParameter(OAUTH2_VALIDATE_SCOPE) == null ? false :
                     (Boolean) authorizationContext.getParameter(OAUTH2_VALIDATE_SCOPE);
-
-            if (!canHandle(requestUri, authorizationContext.getHttpMethods(),
-                    ((OrgMgtAuthorizationContext) authorizationContext).getQueryString())) {
+            String canHandle = canHandle(requestUri, authorizationContext.getHttpMethods(),
+                    ((OrgMgtAuthorizationContext) authorizationContext).getQueryString());
+            if (StringUtils.equals("false", canHandle)) {
                 // Need to handle differently. For now grant access.
                 // TODO
                 authorizationResult.setAuthorizationStatus(AuthorizationStatus.GRANT);
+            } else if (StringUtils.equals("root", canHandle)) {
+                // check in normal authorization model.
+                validatePermissions(authorizationResult, user, permissionString, "ROOT", tenantId);
             } else {
                 if ((Pattern.matches(REGEX_FOR_SCIM_GROUPS_GET, requestUri) &&
                         HTTP_GET.equalsIgnoreCase(authorizationContext.getHttpMethods()))) {
@@ -155,8 +158,19 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
             authorizationResult.setAuthorizationStatus(AuthorizationStatus.GRANT);
             return;
         }
-        boolean isUserAuthorized = OrganizationMgtAuthorizationManager.getInstance()
-                .isUserAuthorized(user, permissionString, CarbonConstants.UI_PERMISSION_ACTION, orgId, tenantId);
+        boolean isUserAuthorized;
+        if (StringUtils.equals("ROOT", orgId)){
+            // Default authorization.
+            RealmService realmService = OrganizationMgtAuthzServiceHolder.getInstance().getRealmService();
+            UserRealm tenantUserRealm = realmService.getTenantUserRealm(tenantId);
+            AuthorizationManager authorizationManager = tenantUserRealm.getAuthorizationManager();
+            isUserAuthorized =
+                    authorizationManager.isUserAuthorized(UserCoreUtil.addDomainToName(user.getUserName(),
+                            user.getUserStoreDomain()), permissionString, CarbonConstants.UI_PERMISSION_ACTION);
+        } else {
+            isUserAuthorized = OrganizationMgtAuthorizationManager.getInstance()
+                    .isUserAuthorized(user, permissionString, CarbonConstants.UI_PERMISSION_ACTION, orgId, tenantId);
+        }
         if (isUserAuthorized) {
             authorizationResult.setAuthorizationStatus(AuthorizationStatus.GRANT);
         }
@@ -204,28 +218,36 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
         return orgId;
     }
 
-    private boolean canHandle(String requestPath, String getHttpMethod, String queryParams) {
+    private String canHandle(String requestPath, String getHttpMethod, String queryParams) {
 
-        boolean canHandle = false;
+        String canHandle = "false";
         if (Pattern.matches(REGEX_FOR_URLS_WITH_ORG_ID, requestPath) ||
                 Pattern.matches(REGEX_FOR_SCIM_USER_REQUESTS, requestPath) ||
                 (Pattern.matches(REGEX_FOR_SCIM_GROUPS_GET, requestPath) && HTTP_GET.equalsIgnoreCase(getHttpMethod))) {
-            canHandle = true;
-        }
-        if (Pattern.matches(REGEX_FOR_SCIM_USERS_GET, requestPath) && queryParams != null) {
-            String[] queryParamsParts = queryParams.split(QUERY_STRING_SEPARATOR);
-            for (String param : Arrays.asList(queryParamsParts)) {
-                if (param.startsWith(FILTER_START)) {
-                    String filter = param;
-                    String[] filterConditions = filter.split(AND);
-                    StringBuilder filterWithOrgId =
-                            new StringBuilder(ORGANIZATION_ID_URI).append(CONDITION_SEPARATOR).append(EQ)
-                                    .append(CONDITION_SEPARATOR);
-                    StringBuilder filterWithOrgName =
-                            new StringBuilder(ORGANIZATION_NAME_URI).append(CONDITION_SEPARATOR).append(EQ)
-                                    .append(CONDITION_SEPARATOR);
-                }
-            }
+            canHandle = "true";
+        } else if (Pattern.matches(REGEX_FOR_SCIM_USERS_GET, requestPath) && HTTP_GET.equalsIgnoreCase(getHttpMethod) && queryParams == null) {
+            canHandle = "root";
+//            if(queryParams != null) {
+//                String[] queryParamsParts = queryParams.split(QUERY_STRING_SEPARATOR);
+//                for (String param : Arrays.asList(queryParamsParts)) {
+//                    if (param.startsWith(FILTER_START)) {
+//                        String filter = param;
+//                        String[] filterConditions = filter.split(AND);
+//                        StringBuilder filterWithOrgId =
+//                                new StringBuilder(ORGANIZATION_ID_URI).append(CONDITION_SEPARATOR).append(EQ)
+//                                        .append(CONDITION_SEPARATOR);
+//                        StringBuilder filterWithOrgName =
+//                                new StringBuilder(ORGANIZATION_NAME_URI).append(CONDITION_SEPARATOR).append(EQ)
+//                                        .append(CONDITION_SEPARATOR);
+//                    }
+//                }
+//                if(Pattern.matches(REGEX_SCIM_USERS_WITH_ORG, requestPath)) {
+//                    canHandle = "true";
+//                }
+//            } else {
+                // SCIM users get from root level.
+//                canHandle = "root";
+//            }
         }
         return canHandle;
     }

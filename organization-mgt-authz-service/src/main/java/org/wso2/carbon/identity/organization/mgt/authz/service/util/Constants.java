@@ -24,7 +24,7 @@ public class Constants {
     public static final String GET_IS_USER_ALLOWED = "SELECT COUNT(1) FROM ORG_AUTHZ_VIEW\n" +
             "WHERE ORG_ID = ? AND UM_USER_ID = ? AND UM_TENANT_ID = ? AND UM_DOMAIN_ID = ?" +
             " AND (UM_RESOURCE_ID = ? OR UM_RESOURCE_ID = ?)";
-    public static final String GET_IS_USER_ALLOWED_AT_LEAST_FOR_ONE_ORG= "SELECT COUNT(1) FROM ORG_AUTHZ_VIEW\n" +
+    public static final String GET_IS_USER_ALLOWED_AT_LEAST_FOR_ONE_ORG = "SELECT COUNT(1) FROM ORG_AUTHZ_VIEW\n" +
             "WHERE UM_USER_ID = ? AND UM_TENANT_ID = ? AND UM_DOMAIN_ID = ?" +
             " AND (UM_RESOURCE_ID = ? OR UM_RESOURCE_ID = ?)";
 
@@ -45,12 +45,16 @@ public class Constants {
     public static final String ORGANIZATION_NAME_DEFAULT_CLAIM_URI = "http://wso2.org/claims/organization";
     public static final String ORGANIZATION_ID_DEFAULT_CLAIM_URI = "http://wso2.org/claims/organizationId";
     public static final String REGEX_FOR_SCIM_GROUPS_GET = "(.*)/scim2/Groups";
-    public static final String REGEX_FOR_SCIM_USERS_GET = "(.*)/scim2/Users";
-    public static final String HTTP_GET ="GET";
+    public static final String REGEX_FOR_SCIM_USERS_GET = "(.*)/scim2/Users(.*)";
+    public static final String HTTP_GET = "GET";
     public static final String QUERY_STRING_SEPARATOR = "&";
     public static final String FILTER_START = "filter=";
-        public static final String ORGANIZATION_ID_URI = "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User.organization.id";
-    public static final String ORGANIZATION_NAME_URI = "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User.organization.name";
+    public static final String ORGANIZATION_ID_URI =
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User.organization.id";
+    public static final String ORGANIZATION_NAME_URI =
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User.organization.name";
     public static final String EQ = "eq";
-    public static final String CONDITION_SEPARATOR ="+";
+    public static final String CONDITION_SEPARATOR = "+";
+    public static final String REGEX_SCIM_USERS_WITH_ORG =
+            "^(.)*(/scim2/Users?)(.*)(filter=)(.)*(" + ORGANIZATION_ID_URI + "|" + ORGANIZATION_NAME_URI + ")(.)*$";
 }
