@@ -60,7 +60,7 @@ public class OrganizationMgtAuthorizationManager {
 
         AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) getUserStoreManager(user);
         String userID = userStoreManager.getUser(null, user.getUserName()).getUserID();
-        boolean isUserAllowed = false;
+        boolean isUserAllowed;
         String[] permissionParts = resourceId.split(PERMISSION_SPLITTER);
         String parentPermission =
                 String.join(PERMISSION_SPLITTER, subArray(permissionParts, 0, permissionParts.length - 1));
@@ -94,7 +94,7 @@ public class OrganizationMgtAuthorizationManager {
             throw new UserStoreException("Error while retrieving userstore manager for user :" + user.getUserName());
         }
         String userID = userStoreManager.getUser(null, user.getUserName()).getUserID();
-        boolean isUserAllowed = false;
+        boolean isUserAllowed;
         String[] permissionParts = resourceId.split(PERMISSION_SPLITTER);
         String parentPermission =
                 String.join(PERMISSION_SPLITTER, subArray(permissionParts, 0, permissionParts.length - 1));

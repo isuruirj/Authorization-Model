@@ -28,13 +28,14 @@ import org.wso2.carbon.identity.authz.service.AuthorizationResult;
 import org.wso2.carbon.identity.authz.service.AuthorizationStatus;
 import org.wso2.carbon.identity.authz.service.exception.AuthzServiceServerException;
 import org.wso2.carbon.identity.authz.service.handler.AuthorizationHandler;
-import org.wso2.carbon.identity.authz.service.internal.AuthorizationServiceHolder;
 import org.wso2.carbon.identity.core.handler.InitConfig;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.organization.mgt.authz.service.OrgMgtAuthorizationContext;
 import org.wso2.carbon.identity.organization.mgt.authz.service.OrganizationMgtAuthorizationManager;
-import org.wso2.carbon.identity.organization.mgt.authz.service.internal.OrganizationMgtAuthzServiceComponent;
 import org.wso2.carbon.identity.organization.mgt.authz.service.internal.OrganizationMgtAuthzServiceHolder;
+import org.wso2.carbon.identity.organization.mgt.core.dao.OrganizationMgtDao;
+import org.wso2.carbon.identity.organization.mgt.core.dao.OrganizationMgtDaoImpl;
+import org.wso2.carbon.identity.organization.mgt.core.exception.OrganizationManagementException;
 import org.wso2.carbon.user.api.AuthorizationManager;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -43,15 +44,13 @@ import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 import static org.wso2.carbon.identity.auth.service.util.Constants.OAUTH2_ALLOWED_SCOPES;
 import static org.wso2.carbon.identity.auth.service.util.Constants.OAUTH2_VALIDATE_SCOPE;
-import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.AND;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.CONDITION_SEPARATOR;
-import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.EQ;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.FILTER_START;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.HTTP_GET;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.ORGANIZATION_ID_DEFAULT_CLAIM_URI;
@@ -63,7 +62,7 @@ import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Const
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_SCIM_USERS_GET;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_SCIM_USER_REQUESTS;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_URLS_WITH_ORG_ID;
-import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_SCIM_USERS_WITH_ORG;
+import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_SCIM_USERS_FILTER_WITH_ORG;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.SCIM_USERS_RESOURCE;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.URI_SPLITTER;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.OrganizationMgtAuthzUtil.getUserStoreManager;
@@ -81,13 +80,14 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
     public AuthorizationResult handleAuthorization(AuthorizationContext authorizationContext)
             throws AuthzServiceServerException {
 
-        // If context not found in org-mgt
+        // If context not found in org-mgt, use the default authorization.
         if (!(authorizationContext instanceof OrgMgtAuthorizationContext)) {
             return super.handleAuthorization(authorizationContext);
         }
         AuthorizationResult authorizationResult = new AuthorizationResult(AuthorizationStatus.DENY);
         try {
             String requestUri = ((OrgMgtAuthorizationContext) authorizationContext).getRequestUri();
+            String queryString = ((OrgMgtAuthorizationContext) authorizationContext).getQueryString();
             User user = authorizationContext.getUser();
             String userDomain = user.getTenantDomain();
             int tenantId = IdentityTenantUtil.getTenantId(userDomain);
@@ -96,23 +96,22 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
                     (String[]) authorizationContext.getParameter(OAUTH2_ALLOWED_SCOPES);
             boolean validateScope = authorizationContext.getParameter(OAUTH2_VALIDATE_SCOPE) == null ? false :
                     (Boolean) authorizationContext.getParameter(OAUTH2_VALIDATE_SCOPE);
-            String canHandle = canHandle(requestUri, authorizationContext.getHttpMethods(),
-                    ((OrgMgtAuthorizationContext) authorizationContext).getQueryString());
+            String canHandle = canHandle(requestUri, authorizationContext.getHttpMethods(), queryString);
             if (StringUtils.equals("false", canHandle)) {
-                // Need to handle differently. For now grant access.
-                // TODO
+                // Pass through from the valve. For now grant access. These requests will be handled in the backend.
                 authorizationResult.setAuthorizationStatus(AuthorizationStatus.GRANT);
             } else if (StringUtils.equals("root", canHandle)) {
-                // check in normal authorization model.
+                // Check in the default authorization model.
                 validatePermissions(authorizationResult, user, permissionString, "ROOT", tenantId);
             } else {
                 if ((Pattern.matches(REGEX_FOR_SCIM_GROUPS_GET, requestUri) &&
                         HTTP_GET.equalsIgnoreCase(authorizationContext.getHttpMethods()))) {
-                    // Check whether the user has the permission for at least one organization.
+                    // Check whether the user has the permission for at least one organization or in the default model.
                     validatePermissions(authorizationResult, user, permissionString, tenantId);
                 } else {
                     // Request can be handled in this handler.
-                    String orgId = retrieveOrganizationId(requestUri, authorizationContext.getHttpMethods(), tenantId);
+                    String orgId = retrieveOrganizationId(requestUri, authorizationContext.getHttpMethods(),
+                            queryString, tenantId);
                     if (orgId != null) {
                         if (StringUtils.isNotBlank(permissionString)) {
                             validatePermissions(authorizationResult, user, permissionString, orgId, tenantId);
@@ -123,9 +122,8 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
                         throw new AuthzServiceServerException(errorMessage);
                     }
                 }
-
             }
-        } catch (UserStoreException e) {
+        } catch (UserStoreException | OrganizationManagementException e) {
             String errorMessage = "Error occurred while trying to authorize, " + e.getMessage();
             log.error(errorMessage);
             throw new AuthzServiceServerException(errorMessage, e);
@@ -159,7 +157,7 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
             return;
         }
         boolean isUserAuthorized;
-        if (StringUtils.equals("ROOT", orgId)){
+        if (StringUtils.equals("ROOT", orgId)) {
             // Default authorization.
             RealmService realmService = OrganizationMgtAuthzServiceHolder.getInstance().getRealmService();
             UserRealm tenantUserRealm = realmService.getTenantUserRealm(tenantId);
@@ -189,17 +187,21 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
         AuthorizationManager authorizationManager = tenantUserRealm.getAuthorizationManager();
         boolean isUserAuthorized = OrganizationMgtAuthorizationManager.getInstance()
                 .isUserAuthorized(user, permissionString, CarbonConstants.UI_PERMISSION_ACTION, tenantId)
-                ||  authorizationManager.isUserAuthorized(UserCoreUtil.addDomainToName(user.getUserName(),
+                || authorizationManager.isUserAuthorized(UserCoreUtil.addDomainToName(user.getUserName(),
                 user.getUserStoreDomain()), permissionString, CarbonConstants.UI_PERMISSION_ACTION);
         if (isUserAuthorized) {
             authorizationResult.setAuthorizationStatus(AuthorizationStatus.GRANT);
         }
     }
 
-    private String retrieveOrganizationId(String requestPath, String getHttpMethod, int tenantId)
-            throws UserStoreException {
+    private String retrieveOrganizationId(String requestPath, String getHttpMethod, String queryString, int tenantId)
+            throws UserStoreException, OrganizationManagementException {
 
         String orgId = null;
+        UserStoreManager carbonUM = getUserStoreManager(tenantId);
+        if (carbonUM == null) {
+            throw new UserStoreException("Error while retrieving userstore manager for tenant: " + tenantId);
+        }
         if (Pattern.matches(REGEX_FOR_URLS_WITH_ORG_ID, requestPath)) {
             String[] requestUriParts = requestPath.split(URI_SPLITTER);
             orgId = Arrays.asList(requestUriParts)
@@ -208,12 +210,29 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
             String[] requestUriParts = requestPath.split(URI_SPLITTER);
             String userId = Arrays.asList(requestUriParts)
                     .get((Arrays.asList(requestUriParts).indexOf(SCIM_USERS_RESOURCE)) + 1);
-            UserStoreManager carbonUM = getUserStoreManager(tenantId);
-            if (carbonUM == null) {
-                throw new UserStoreException("Error while retrieving userstore manager for tenant: " + tenantId);
-            }
             orgId = ((AbstractUserStoreManager) carbonUM)
                     .getUserClaimValueWithID(userId, ORGANIZATION_ID_DEFAULT_CLAIM_URI, null);
+        } else if (Pattern.matches(REGEX_FOR_SCIM_USERS_GET, requestPath) &&
+                Pattern.matches(REGEX_SCIM_USERS_FILTER_WITH_ORG, queryString)) {
+            // Assume logical condition "AND" and expression operator "EQ" is supported.
+            String[] queryStringParts = queryString.split(QUERY_STRING_SEPARATOR);
+            String filter = StringUtils.EMPTY;
+            for (String queryStringPart: queryStringParts) {
+                if (queryStringPart.contains(FILTER_START)) {
+                    filter = queryString;
+                    break;
+                }
+            }
+            String[] filterParts = filter.replace(FILTER_START, "").split(CONDITION_SEPARATOR);
+            if (Arrays.asList(filterParts).contains(ORGANIZATION_ID_URI)) {
+                orgId = Arrays.asList(filterParts)
+                        .get(Arrays.asList(filterParts).indexOf(ORGANIZATION_ID_URI) + 2);
+            } else if (Arrays.asList(filterParts).contains(ORGANIZATION_NAME_URI)) {
+                String orgName = Arrays.asList(filterParts)
+                        .get(Arrays.asList(filterParts).indexOf(ORGANIZATION_NAME_URI) + 2);
+                OrganizationMgtDao organizationMgtDao = new OrganizationMgtDaoImpl();
+                orgId = organizationMgtDao.getOrganizationIdByName(tenantId, orgName);
+            }
         }
         return orgId;
     }
@@ -225,29 +244,13 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
                 Pattern.matches(REGEX_FOR_SCIM_USER_REQUESTS, requestPath) ||
                 (Pattern.matches(REGEX_FOR_SCIM_GROUPS_GET, requestPath) && HTTP_GET.equalsIgnoreCase(getHttpMethod))) {
             canHandle = "true";
-        } else if (Pattern.matches(REGEX_FOR_SCIM_USERS_GET, requestPath) && HTTP_GET.equalsIgnoreCase(getHttpMethod) && queryParams == null) {
-            canHandle = "root";
-//            if(queryParams != null) {
-//                String[] queryParamsParts = queryParams.split(QUERY_STRING_SEPARATOR);
-//                for (String param : Arrays.asList(queryParamsParts)) {
-//                    if (param.startsWith(FILTER_START)) {
-//                        String filter = param;
-//                        String[] filterConditions = filter.split(AND);
-//                        StringBuilder filterWithOrgId =
-//                                new StringBuilder(ORGANIZATION_ID_URI).append(CONDITION_SEPARATOR).append(EQ)
-//                                        .append(CONDITION_SEPARATOR);
-//                        StringBuilder filterWithOrgName =
-//                                new StringBuilder(ORGANIZATION_NAME_URI).append(CONDITION_SEPARATOR).append(EQ)
-//                                        .append(CONDITION_SEPARATOR);
-//                    }
-//                }
-//                if(Pattern.matches(REGEX_SCIM_USERS_WITH_ORG, requestPath)) {
-//                    canHandle = "true";
-//                }
-//            } else {
-                // SCIM users get from root level.
-//                canHandle = "root";
-//            }
+        } else if (Pattern.matches(REGEX_FOR_SCIM_USERS_GET, requestPath) && HTTP_GET.equalsIgnoreCase(getHttpMethod)) {
+            if (queryParams != null && Pattern.matches(REGEX_SCIM_USERS_FILTER_WITH_ORG, queryParams)) {
+                canHandle = "true";
+            } else {
+                //SCIM users get from root level.
+                canHandle = "root";
+            }
         }
         return canHandle;
     }

@@ -25,7 +25,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.auth.service.module.ResourceConfig;
-import org.wso2.carbon.identity.auth.service.module.ResourceConfigKey;
 import org.wso2.carbon.identity.auth.service.util.Constants;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
