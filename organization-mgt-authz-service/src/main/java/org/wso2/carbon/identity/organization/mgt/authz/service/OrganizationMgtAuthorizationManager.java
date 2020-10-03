@@ -33,6 +33,9 @@ import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Const
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.PERMISSION_SPLITTER;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.OrganizationMgtAuthzUtil.getUserStoreManager;
 
+/**
+ * Manager for organization mgt related authorization.
+ */
 public class OrganizationMgtAuthorizationManager {
 
     private static OrganizationMgtAuthorizationManager organizationMgtAuthorizationManager =
@@ -81,7 +84,7 @@ public class OrganizationMgtAuthorizationManager {
             isUserAllowed = (mappingsCount > 0);
         } catch (DataAccessException e) {
             //TODO
-           throw new UserStoreException(e);
+            throw new UserStoreException(e);
         }
         return isUserAllowed;
     }

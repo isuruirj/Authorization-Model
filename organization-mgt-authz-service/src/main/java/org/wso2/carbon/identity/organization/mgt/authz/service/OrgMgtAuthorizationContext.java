@@ -19,14 +19,14 @@
 package org.wso2.carbon.identity.organization.mgt.authz.service;
 
 import org.wso2.carbon.identity.application.common.model.User;
-import org.wso2.carbon.identity.auth.service.AuthenticationContext;
-import org.wso2.carbon.identity.auth.service.AuthenticationRequest;
 import org.wso2.carbon.identity.authz.service.AuthorizationContext;
-import org.wso2.carbon.identity.core.bean.context.MessageContext;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Organization mgt related AuthorizationContext.
+ */
 public class OrgMgtAuthorizationContext extends AuthorizationContext {
 
     private String context;

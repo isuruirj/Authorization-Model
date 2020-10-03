@@ -205,24 +205,34 @@ public class OrganizationMgtAuthzUtil {
     }
 
     /**
-     * Get the userstore manager for the user.
+     * Get the userstore manager by user.
      *
-     * @param user User.
-     * @return Userstore manager.
+     * @param user User object.
+     * @return The userstore manager.
+     * @throws org.wso2.carbon.user.api.UserStoreException Error while getting the userstore manager.
      */
     public static UserStoreManager getUserStoreManager(User user) throws org.wso2.carbon.user.api.UserStoreException {
 
         RealmService realmService = OrganizationMgtAuthzServiceHolder.getInstance().getRealmService();
         UserRealm tenantUserRealm = realmService.getTenantUserRealm(IdentityTenantUtil.
                 getTenantId(user.getTenantDomain()));
-        if (IdentityUtil.getPrimaryDomainName().equals(user.getUserStoreDomain()) || user.getUserStoreDomain() == null) {
+        if (IdentityUtil.getPrimaryDomainName().equals(user.getUserStoreDomain()) ||
+                user.getUserStoreDomain() == null) {
             return (UserStoreManager) tenantUserRealm.getUserStoreManager();
         }
         return ((UserStoreManager) tenantUserRealm.getUserStoreManager())
                 .getSecondaryUserStoreManager(user.getUserStoreDomain());
     }
 
+    /**
+     * Gent the userstore manager by tenantId.
+     *
+     * @param tenantId Tenant Id.
+     * @return The userstore manager.
+     * @throws UserStoreException Error while getting the userstore manager.
+     */
     public static UserStoreManager getUserStoreManager(int tenantId) throws UserStoreException {
+
         RealmService realmService = OrganizationMgtAuthzServiceHolder.getInstance().getRealmService();
         UserRealm userRealm = realmService.getTenantUserRealm(tenantId);
         return (UserStoreManager) userRealm.getUserStoreManager();

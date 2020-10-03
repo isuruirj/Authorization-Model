@@ -23,9 +23,13 @@ import org.wso2.carbon.identity.authz.service.AuthorizationManager;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Class to hold organization mgt related authorization valve service data.
+ */
 public class OrganizationMgtAuthzValveServiceHolder {
 
-    private static OrganizationMgtAuthzValveServiceHolder organizationMgtAuthzValveServiceHolder = new OrganizationMgtAuthzValveServiceHolder();
+    private static OrganizationMgtAuthzValveServiceHolder organizationMgtAuthzValveServiceHolder =
+            new OrganizationMgtAuthzValveServiceHolder();
     private List<AuthorizationManager> authorizationManagerList = new ArrayList<AuthorizationManager>();
 
     private OrganizationMgtAuthzValveServiceHolder() {
@@ -33,10 +37,12 @@ public class OrganizationMgtAuthzValveServiceHolder {
     }
 
     public static OrganizationMgtAuthzValveServiceHolder getInstance() {
+
         return OrganizationMgtAuthzValveServiceHolder.organizationMgtAuthzValveServiceHolder;
     }
 
     public List<AuthorizationManager> getAuthorizationManagerList() {
+
         return authorizationManagerList;
     }
 

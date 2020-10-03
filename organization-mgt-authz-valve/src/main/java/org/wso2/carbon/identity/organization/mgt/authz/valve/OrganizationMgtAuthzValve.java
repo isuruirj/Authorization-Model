@@ -48,6 +48,9 @@ import javax.servlet.http.HttpServletResponse;
 import static org.wso2.carbon.identity.auth.service.util.Constants.OAUTH2_ALLOWED_SCOPES;
 import static org.wso2.carbon.identity.auth.service.util.Constants.OAUTH2_VALIDATE_SCOPE;
 
+/**
+ * The valve for organization mgt related authorization.
+ */
 public class OrganizationMgtAuthzValve extends ValveBase {
 
     private static final String AUTH_HEADER_NAME = "WWW-Authenticate";
@@ -63,7 +66,7 @@ public class OrganizationMgtAuthzValve extends ValveBase {
                 .isNotEmpty(authenticationContext.getUser().getUserName())) {
             String contextPath = authenticationContext.getResourceConfig().getContext();
             String httpMethod = authenticationContext.getResourceConfig().getHttpMethod();
-            // Check whether the request need to be handled by custom authorize handler
+            // Check whether the request need to be handled by custom authorize handler.
             ResourceConfig resourceConfigInOrgMgt = OrganizationMgtAuthzUtil.getInstance()
                     .getSecuredConfig(new OrgResourceConfigKey(authenticationContext.getResourceConfig().getContext(),
                             authenticationContext.getResourceConfig().getHttpMethod()));

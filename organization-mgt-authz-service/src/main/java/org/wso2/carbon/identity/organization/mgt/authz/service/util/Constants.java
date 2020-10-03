@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.organization.mgt.authz.service.util;
 
+/**
+ * Constants related to organization mgt authorization service and manager.
+ */
 public class Constants {
 
     // SQL Constants.

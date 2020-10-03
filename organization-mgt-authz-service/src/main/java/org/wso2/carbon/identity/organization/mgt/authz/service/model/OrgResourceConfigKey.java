@@ -18,11 +18,12 @@
 
 package org.wso2.carbon.identity.organization.mgt.authz.service.model;
 
-import org.wso2.carbon.identity.auth.service.module.ResourceConfigKey;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Organization related resource config data key.
+ */
 public class OrgResourceConfigKey {
 
     private String contextPath;

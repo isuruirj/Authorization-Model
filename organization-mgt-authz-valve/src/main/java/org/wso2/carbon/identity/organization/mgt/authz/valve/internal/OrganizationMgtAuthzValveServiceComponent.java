@@ -42,9 +42,9 @@ public class OrganizationMgtAuthzValveServiceComponent {
 
     @Activate
     protected void activate(ComponentContext cxt) {
+
         if (log.isDebugEnabled())
             log.debug("OrganizationMgtAuthzValveServiceComponent is activated");
-        log.info("=========================OrganizationMgtAuthzValveServiceComponent");
     }
 
     @Reference(
@@ -54,17 +54,21 @@ public class OrganizationMgtAuthzValveServiceComponent {
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetAuthorizationManager")
     protected void setAuthorizationManager(AuthorizationManager authorizationManager) {
+
         if (log.isDebugEnabled()) {
             log.debug("AuthorizationManager acquired");
         }
         List<AuthorizationManager>
-                authorizationManagerList = OrganizationMgtAuthzValveServiceHolder.getInstance().getAuthorizationManagerList();
+                authorizationManagerList =
+                OrganizationMgtAuthzValveServiceHolder.getInstance().getAuthorizationManagerList();
         authorizationManagerList.add(authorizationManager);
         sort(authorizationManagerList, new HandlerComparator());
     }
 
     protected void unsetAuthorizationManager(AuthorizationManager authorizationManager) {
-        List<AuthorizationManager> authorizationManagerList = OrganizationMgtAuthzValveServiceHolder.getInstance().getAuthorizationManagerList();
+
+        List<AuthorizationManager> authorizationManagerList =
+                OrganizationMgtAuthzValveServiceHolder.getInstance().getAuthorizationManagerList();
         authorizationManagerList.remove(authorizationManager);
     }
 }

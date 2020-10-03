@@ -35,12 +35,6 @@ import org.wso2.carbon.user.core.service.RealmService;
 @Component(
         name = "org.wso2.carbon.identity.org.mgt.authz.service",
         immediate = true)
-///**
-// * @scr.component name="org.wso2.carbon.identity.org.mgt.authz.service" immediate=true
-// * @scr.reference name="user.realmservice.default"
-// * interface="org.wso2.carbon.user.core.service.RealmService" cardinality="1..1"
-// * policy="dynamic" bind="setRealmService" unbind="unsetRealmService"
-// */
 public class OrganizationMgtAuthzServiceComponent {
 
     private static final Log log = LogFactory.getLog(OrganizationMgtAuthzServiceComponent.class);
@@ -50,7 +44,6 @@ public class OrganizationMgtAuthzServiceComponent {
 
         cxt.getBundleContext()
                 .registerService(AuthorizationHandler.class.getName(), new OrganizationMgtAuthzHandler(), null);
-        log.info("======OrganizationMgtAuthzServiceComponent is activated========");
         // Build the configuration file.
         OrganizationMgtAuthzUtil.getInstance();
         if (log.isDebugEnabled()) {
@@ -73,6 +66,7 @@ public class OrganizationMgtAuthzServiceComponent {
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetRealmService")
     protected void setRealmService(RealmService realmService) {
+
         if (log.isDebugEnabled()) {
             log.debug("RealmService acquired");
         }
@@ -80,6 +74,7 @@ public class OrganizationMgtAuthzServiceComponent {
     }
 
     protected void unsetRealmService(RealmService realmService) {
+
         setRealmService(null);
     }
 

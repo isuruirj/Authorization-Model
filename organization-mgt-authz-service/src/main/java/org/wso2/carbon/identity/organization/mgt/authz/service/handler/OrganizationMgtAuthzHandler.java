@@ -217,7 +217,7 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
             // Assume logical condition "AND" and expression operator "EQ" is supported.
             String[] queryStringParts = queryString.split(QUERY_STRING_SEPARATOR);
             String filter = StringUtils.EMPTY;
-            for (String queryStringPart: queryStringParts) {
+            for (String queryStringPart : queryStringParts) {
                 if (queryStringPart.contains(FILTER_START)) {
                     filter = queryString;
                     break;
