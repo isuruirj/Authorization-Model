@@ -219,7 +219,7 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
             String filter = StringUtils.EMPTY;
             for (String queryStringPart : queryStringParts) {
                 if (queryStringPart.contains(FILTER_START)) {
-                    filter = queryString;
+                    filter = queryStringPart;
                     break;
                 }
             }
