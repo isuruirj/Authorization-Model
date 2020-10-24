@@ -18,20 +18,10 @@
 
 package org.wso2.carbon.identity.organization.mgt.authz.service;
 
-import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
-import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.application.common.model.User;
-import org.wso2.carbon.identity.core.persistence.UmPersistenceManager;
+import org.wso2.carbon.identity.organization.mgt.authz.service.dao.OrganizationMgtAuthzDAOImpl;
 import org.wso2.carbon.user.api.UserStoreException;
-import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 
-import java.util.Arrays;
-
-import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.COUNT_COLUMN_NAME;
-import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.GET_IS_USER_ALLOWED;
-import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.GET_IS_USER_ALLOWED_AT_LEAST_FOR_ONE_ORG;
-import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.PERMISSION_SPLITTER;
-import static org.wso2.carbon.identity.organization.mgt.authz.service.util.OrganizationMgtAuthzUtil.getUserStoreManager;
 
 /**
  * Manager for organization mgt related authorization.
@@ -58,77 +48,38 @@ public class OrganizationMgtAuthorizationManager {
         return organizationMgtAuthorizationManager;
     }
 
+    /**
+     * Check whether the user is authorized for the particular organization.
+     *
+     * @param user       User object.
+     * @param resourceId Required permission.
+     * @param action     Permission assignment action.
+     * @param orgId      Organization id.
+     * @param tenantId   Tenant id.
+     * @return Whether the user is authorized or not.
+     * @throws UserStoreException If error occurred while retrieving the userstore manager.
+     */
     public boolean isUserAuthorized(User user, String resourceId, String action, String orgId, int tenantId)
             throws UserStoreException {
 
-        AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) getUserStoreManager(user);
-        String userID = userStoreManager.getUser(null, user.getUserName()).getUserID();
-        boolean isUserAllowed;
-        String[] permissionParts = resourceId.split(PERMISSION_SPLITTER);
-        String parentPermission =
-                String.join(PERMISSION_SPLITTER, subArray(permissionParts, 0, permissionParts.length - 1));
-        JdbcTemplate jdbcTemplate = getNewTemplate();
-        try {
-            int mappingsCount = jdbcTemplate.fetchSingleRecord(GET_IS_USER_ALLOWED,
-                    (resultSet, rowNumber) ->
-                            resultSet.getInt(COUNT_COLUMN_NAME),
-                    preparedStatement -> {
-                        int parameterIndex = 0;
-                        preparedStatement.setString(++parameterIndex, orgId);
-                        preparedStatement.setString(++parameterIndex, userID);
-                        preparedStatement.setInt(++parameterIndex, tenantId);
-                        preparedStatement.setInt(++parameterIndex, 3);
-                        preparedStatement.setString(++parameterIndex, resourceId);
-                        preparedStatement.setString(++parameterIndex, parentPermission);
-                    });
-            isUserAllowed = (mappingsCount > 0);
-        } catch (DataAccessException e) {
-            //TODO
-            throw new UserStoreException(e);
-        }
-        return isUserAllowed;
+        OrganizationMgtAuthzDAOImpl organizationMgtAuthzDAOImpl = new OrganizationMgtAuthzDAOImpl();
+        return organizationMgtAuthzDAOImpl.isUserAuthorized(user, resourceId, action, orgId, tenantId);
     }
 
+    /**
+     * Check whether the user has permission at least for one organization.
+     *
+     * @param user       User object.
+     * @param resourceId Required permission.
+     * @param action     Permission assignment action.
+     * @param tenantId   Tenant id.
+     * @return Whether the user is authorized or not.
+     * @throws UserStoreException If error occurred while retrieving the userstore manager.
+     */
     public boolean isUserAuthorized(User user, String resourceId, String action, int tenantId)
             throws UserStoreException {
 
-        AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) getUserStoreManager(user);
-        if (userStoreManager == null) {
-            throw new UserStoreException("Error while retrieving userstore manager for user :" + user.getUserName());
-        }
-        String userID = userStoreManager.getUser(null, user.getUserName()).getUserID();
-        boolean isUserAllowed;
-        String[] permissionParts = resourceId.split(PERMISSION_SPLITTER);
-        String parentPermission =
-                String.join(PERMISSION_SPLITTER, subArray(permissionParts, 0, permissionParts.length - 1));
-        JdbcTemplate jdbcTemplate = getNewTemplate();
-        try {
-            int mappingsCount = jdbcTemplate.fetchSingleRecord(GET_IS_USER_ALLOWED_AT_LEAST_FOR_ONE_ORG,
-                    (resultSet, rowNumber) ->
-                            resultSet.getInt(COUNT_COLUMN_NAME),
-                    preparedStatement -> {
-                        int parameterIndex = 0;
-                        preparedStatement.setString(++parameterIndex, userID);
-                        preparedStatement.setInt(++parameterIndex, tenantId);
-                        preparedStatement.setInt(++parameterIndex, 3);
-                        preparedStatement.setString(++parameterIndex, resourceId);
-                        preparedStatement.setString(++parameterIndex, parentPermission);
-                    });
-            isUserAllowed = (mappingsCount > 0);
-        } catch (DataAccessException e) {
-            //TODO
-            throw new UserStoreException(e);
-        }
-        return isUserAllowed;
-    }
-
-    public static JdbcTemplate getNewTemplate() {
-
-        return new JdbcTemplate(UmPersistenceManager.getInstance().getDataSource());
-    }
-
-    public static <T> T[] subArray(T[] array, int beg, int end) {
-
-        return Arrays.copyOfRange(array, beg, end);
+        OrganizationMgtAuthzDAOImpl organizationMgtAuthzDAOImpl = new OrganizationMgtAuthzDAOImpl();
+        return organizationMgtAuthzDAOImpl.isUserAuthorized(user, resourceId, action, tenantId);
     }
 }

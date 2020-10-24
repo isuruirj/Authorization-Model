@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.core.handler.InitConfig;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.organization.mgt.authz.service.OrgMgtAuthorizationContext;
 import org.wso2.carbon.identity.organization.mgt.authz.service.OrganizationMgtAuthorizationManager;
+import org.wso2.carbon.identity.organization.mgt.authz.service.dao.OrganizationMgtAuthzDAOImpl;
 import org.wso2.carbon.identity.organization.mgt.authz.service.internal.OrganizationMgtAuthzServiceHolder;
 import org.wso2.carbon.identity.organization.mgt.core.dao.OrganizationMgtDao;
 import org.wso2.carbon.identity.organization.mgt.core.dao.OrganizationMgtDaoImpl;
@@ -101,8 +102,10 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
                 // Pass through from the valve. For now grant access. These requests will be handled in the backend.
                 authorizationResult.setAuthorizationStatus(AuthorizationStatus.GRANT);
             } else if (StringUtils.equals("root", canHandle)) {
-                // Check in the default authorization model.
-                validatePermissions(authorizationResult, user, permissionString, "ROOT", tenantId);
+                // Retrieve the organizationId of ROOT org
+                OrganizationMgtAuthzDAOImpl organizationMgtAuthzDAOImpl = new OrganizationMgtAuthzDAOImpl();
+                String rootOrgId = organizationMgtAuthzDAOImpl.getRootOrgId("ROOT", tenantId);
+                validatePermissions(authorizationResult, user, permissionString, rootOrgId, tenantId);
             } else {
                 if ((Pattern.matches(REGEX_FOR_SCIM_GROUPS_GET, requestUri) &&
                         HTTP_GET.equalsIgnoreCase(authorizationContext.getHttpMethods()))) {
@@ -156,19 +159,8 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
             authorizationResult.setAuthorizationStatus(AuthorizationStatus.GRANT);
             return;
         }
-        boolean isUserAuthorized;
-        if (StringUtils.equals("ROOT", orgId)) {
-            // Default authorization.
-            RealmService realmService = OrganizationMgtAuthzServiceHolder.getInstance().getRealmService();
-            UserRealm tenantUserRealm = realmService.getTenantUserRealm(tenantId);
-            AuthorizationManager authorizationManager = tenantUserRealm.getAuthorizationManager();
-            isUserAuthorized =
-                    authorizationManager.isUserAuthorized(UserCoreUtil.addDomainToName(user.getUserName(),
-                            user.getUserStoreDomain()), permissionString, CarbonConstants.UI_PERMISSION_ACTION);
-        } else {
-            isUserAuthorized = OrganizationMgtAuthorizationManager.getInstance()
+        boolean isUserAuthorized = OrganizationMgtAuthorizationManager.getInstance()
                     .isUserAuthorized(user, permissionString, CarbonConstants.UI_PERMISSION_ACTION, orgId, tenantId);
-        }
         if (isUserAuthorized) {
             authorizationResult.setAuthorizationStatus(AuthorizationStatus.GRANT);
         }
