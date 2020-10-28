@@ -30,11 +30,18 @@ public class Constants {
     public static final String GET_IS_USER_ALLOWED_AT_LEAST_FOR_ONE_ORG = "SELECT COUNT(1) FROM ORG_AUTHZ_VIEW\n" +
             "WHERE UM_USER_ID = ? AND UM_TENANT_ID = ? AND UM_DOMAIN_ID = ?" +
             " AND (UM_RESOURCE_ID = ? OR UM_RESOURCE_ID = ?)";
+    public static final String GET_ROOT_ORG_ID =   "SELECT\n" +
+            "    DISTINCT ID\n" +
+            "FROM\n" +
+            "    UM_ORG\n" +
+            "WHERE\n" +
+            "    NAME = ? AND TENANT_ID = ?";
 
     public static final String AND = " AND ";
     public static final String OR = " OR ";
     public static final String PERMISSION_REQUIRED = "UM_RESOURCE_ID = ?";
     public static final String COUNT_COLUMN_NAME = "COUNT(1)";
+    public static final String VIEW_ID = "ID";
 
     public static final String PERMISSION_SPLITTER = "/";
     public static final String URI_SPLITTER = "/";
