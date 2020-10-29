@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.COUNT_COLUMN_NAME;
+import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.ERROR_RETRIEVING_ROOT_ID;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.GET_IS_USER_ALLOWED;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.GET_IS_USER_ALLOWED_AT_LEAST_FOR_ONE_ORG;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.GET_ROOT_ORG_ID;
@@ -54,7 +55,7 @@ public class OrganizationMgtAuthzDAOImpl implements OrganizationMgtAuthzDAO {
             // Query should return only one entry because there is only one ROOT organization.
             return ids.get(0);
         } catch (DataAccessException e) {
-            throw new OrganizationManagementException(e);
+            throw new OrganizationManagementException(ERROR_RETRIEVING_ROOT_ID, null, e);
         }
     }
 
