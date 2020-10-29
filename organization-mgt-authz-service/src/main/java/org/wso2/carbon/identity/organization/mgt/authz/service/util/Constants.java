@@ -66,4 +66,6 @@ public class Constants {
     public static final String CONDITION_SEPARATOR = "\\+";
     public static final String REGEX_SCIM_USERS_FILTER_WITH_ORG =
             "^(.)*(filter=)(.)*(" + ORGANIZATION_ID_URI + "|" + ORGANIZATION_NAME_URI + ")(.)*$";
+
+    public static final String ERROR_RETRIEVING_ROOT_ID = "Error while retrieving the root organization id.";
 }
