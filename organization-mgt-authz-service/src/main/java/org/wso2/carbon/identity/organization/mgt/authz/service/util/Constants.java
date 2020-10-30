@@ -25,11 +25,9 @@ public class Constants {
 
     // SQL Constants.
     public static final String GET_IS_USER_ALLOWED = "SELECT COUNT(1) FROM ORG_AUTHZ_VIEW\n" +
-            "WHERE ORG_ID = ? AND UM_USER_ID = ? AND UM_TENANT_ID = ? AND UM_DOMAIN_ID = ?" +
-            " AND (UM_RESOURCE_ID = ? OR UM_RESOURCE_ID = ?)";
+            "WHERE ORG_ID = ? AND UM_USER_ID = ? AND UM_TENANT_ID = ? AND UM_DOMAIN_ID = ?";
     public static final String GET_IS_USER_ALLOWED_AT_LEAST_FOR_ONE_ORG = "SELECT COUNT(1) FROM ORG_AUTHZ_VIEW\n" +
-            "WHERE UM_USER_ID = ? AND UM_TENANT_ID = ? AND UM_DOMAIN_ID = ?" +
-            " AND (UM_RESOURCE_ID = ? OR UM_RESOURCE_ID = ?)";
+            "WHERE UM_USER_ID = ? AND UM_TENANT_ID = ? AND UM_DOMAIN_ID = ?";
     public static final String GET_ROOT_ORG_ID =   "SELECT\n" +
             "    DISTINCT ID\n" +
             "FROM\n" +

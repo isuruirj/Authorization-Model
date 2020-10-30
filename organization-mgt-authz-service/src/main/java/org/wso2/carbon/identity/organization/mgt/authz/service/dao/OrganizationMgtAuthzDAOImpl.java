@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.organization.mgt.authz.service.dao;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.application.common.model.User;
@@ -26,14 +27,18 @@ import org.wso2.carbon.identity.organization.mgt.core.exception.OrganizationMana
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.AND;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.COUNT_COLUMN_NAME;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.ERROR_RETRIEVING_ROOT_ID;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.GET_IS_USER_ALLOWED;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.GET_IS_USER_ALLOWED_AT_LEAST_FOR_ONE_ORG;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.GET_ROOT_ORG_ID;
+import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.OR;
+import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.PERMISSION_REQUIRED;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.PERMISSION_SPLITTER;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.VIEW_ID;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.OrganizationMgtAuthzUtil.getUserStoreManager;
@@ -59,6 +64,7 @@ public class OrganizationMgtAuthzDAOImpl implements OrganizationMgtAuthzDAO {
         }
     }
 
+    @SuppressFBWarnings("SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING")
     @Override
     public boolean isUserAuthorized(User user, String resourceId, String action, String orgId, int tenantId)
             throws UserStoreException {
@@ -67,22 +73,28 @@ public class OrganizationMgtAuthzDAOImpl implements OrganizationMgtAuthzDAO {
         String userID = userStoreManager.getUser(null, user.getUserName()).getUserID();
         boolean isUserAllowed;
         String[] permissionParts = resourceId.split(PERMISSION_SPLITTER);
-        String parentPermission =
-                String.join(PERMISSION_SPLITTER, subArray(permissionParts, 0, permissionParts.length - 1));
+        // Find the higher level permissions which include the required resourceId.
+        List<String> allowedPermissions = new ArrayList<>();
+        for (int i = 0; i < permissionParts.length - 1; i++) {
+            allowedPermissions.add(String.join(PERMISSION_SPLITTER,
+                    subArray(permissionParts, 0, permissionParts.length - i)));
+        }
         JdbcTemplate jdbcTemplate = getNewTemplate();
         try {
-            int mappingsCount = jdbcTemplate.fetchSingleRecord(GET_IS_USER_ALLOWED,
-                    (resultSet, rowNumber) ->
-                            resultSet.getInt(COUNT_COLUMN_NAME),
-                    preparedStatement -> {
-                        int parameterIndex = 0;
-                        preparedStatement.setString(++parameterIndex, orgId);
-                        preparedStatement.setString(++parameterIndex, userID);
-                        preparedStatement.setInt(++parameterIndex, tenantId);
-                        preparedStatement.setInt(++parameterIndex, 3);
-                        preparedStatement.setString(++parameterIndex, resourceId);
-                        preparedStatement.setString(++parameterIndex, parentPermission);
-                    });
+            int mappingsCount = jdbcTemplate
+                    .fetchSingleRecord(buildQueryForIsUserAuthorized(GET_IS_USER_ALLOWED, allowedPermissions.size()),
+                            (resultSet, rowNumber) ->
+                                    resultSet.getInt(COUNT_COLUMN_NAME),
+                            preparedStatement -> {
+                                int parameterIndex = 0;
+                                preparedStatement.setString(++parameterIndex, orgId);
+                                preparedStatement.setString(++parameterIndex, userID);
+                                preparedStatement.setInt(++parameterIndex, tenantId);
+                                preparedStatement.setInt(++parameterIndex, 3);
+                                for (String permission : allowedPermissions) {
+                                    preparedStatement.setString(++parameterIndex, permission);
+                                }
+                            });
             isUserAllowed = (mappingsCount > 0);
         } catch (DataAccessException e) {
             //TODO
@@ -91,6 +103,7 @@ public class OrganizationMgtAuthzDAOImpl implements OrganizationMgtAuthzDAO {
         return isUserAllowed;
     }
 
+    @SuppressFBWarnings("SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING")
     @Override
     public boolean isUserAuthorized(User user, String resourceId, String action, int tenantId)
             throws UserStoreException {
@@ -102,11 +115,16 @@ public class OrganizationMgtAuthzDAOImpl implements OrganizationMgtAuthzDAO {
         String userID = userStoreManager.getUser(null, user.getUserName()).getUserID();
         boolean isUserAllowed;
         String[] permissionParts = resourceId.split(PERMISSION_SPLITTER);
-        String parentPermission =
-                String.join(PERMISSION_SPLITTER, subArray(permissionParts, 0, permissionParts.length - 1));
+        // Find the higher level permissions which include the required resourceId.
+        List<String> allowedPermissions = new ArrayList<>();
+        for (int i = 0; i < permissionParts.length - 1; i++) {
+            allowedPermissions.add(String.join(PERMISSION_SPLITTER,
+                    subArray(permissionParts, 0, permissionParts.length - i)));
+        }
         JdbcTemplate jdbcTemplate = getNewTemplate();
         try {
-            int mappingsCount = jdbcTemplate.fetchSingleRecord(GET_IS_USER_ALLOWED_AT_LEAST_FOR_ONE_ORG,
+            int mappingsCount = jdbcTemplate.fetchSingleRecord(
+                    buildQueryForIsUserAuthorized(GET_IS_USER_ALLOWED_AT_LEAST_FOR_ONE_ORG, allowedPermissions.size()),
                     (resultSet, rowNumber) ->
                             resultSet.getInt(COUNT_COLUMN_NAME),
                     preparedStatement -> {
@@ -114,8 +132,9 @@ public class OrganizationMgtAuthzDAOImpl implements OrganizationMgtAuthzDAO {
                         preparedStatement.setString(++parameterIndex, userID);
                         preparedStatement.setInt(++parameterIndex, tenantId);
                         preparedStatement.setInt(++parameterIndex, 3);
-                        preparedStatement.setString(++parameterIndex, resourceId);
-                        preparedStatement.setString(++parameterIndex, parentPermission);
+                        for (String permission : allowedPermissions) {
+                            preparedStatement.setString(++parameterIndex, permission);
+                        }
                     });
             isUserAllowed = (mappingsCount > 0);
         } catch (DataAccessException e) {
@@ -123,6 +142,24 @@ public class OrganizationMgtAuthzDAOImpl implements OrganizationMgtAuthzDAO {
             throw new UserStoreException(e);
         }
         return isUserAllowed;
+    }
+
+    private String buildQueryForIsUserAuthorized(String baseString, int NumberOfAllowedPermissions) {
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(baseString);
+        if (NumberOfAllowedPermissions > 0) {
+            sb.append(AND);
+            sb.append("(");
+            for (int i = 0; i < NumberOfAllowedPermissions; i++) {
+                sb.append(PERMISSION_REQUIRED);
+                if (i != NumberOfAllowedPermissions - 1) {
+                    sb.append(OR);
+                }
+            }
+            sb.append(")");
+        }
+        return sb.toString();
     }
 
     public static JdbcTemplate getNewTemplate() {
