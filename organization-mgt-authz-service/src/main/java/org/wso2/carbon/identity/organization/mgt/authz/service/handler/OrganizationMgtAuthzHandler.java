@@ -59,6 +59,7 @@ import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Const
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.ORGANIZATION_NAME_URI;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.ORGANIZATION_RESOURCE;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.QUERY_STRING_SEPARATOR;
+import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_ORG_SEARCH;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_SCIM_GROUPS_GET;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_SCIM_USERS_GET;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_SCIM_USER_REQUESTS;
@@ -110,6 +111,14 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
                 if ((Pattern.matches(REGEX_FOR_SCIM_GROUPS_GET, requestUri) &&
                         HTTP_GET.equalsIgnoreCase(authorizationContext.getHttpMethods()))) {
                     // Check whether the user has the permission for at least one organization or in the default model.
+                    validatePermissions(authorizationResult, user, permissionString, tenantId);
+                } else if (Pattern.matches(REGEX_FOR_ORG_SEARCH, requestUri) &&
+                        !Pattern.matches(REGEX_FOR_URLS_WITH_ORG_ID, requestUri) &&
+                        HTTP_GET.equalsIgnoreCase(authorizationContext.getHttpMethods())) {
+                    /*
+                    If the request is a organizations search,
+                    check whether the user has permission for at least one organization.
+                     */
                     validatePermissions(authorizationResult, user, permissionString, tenantId);
                 } else {
                     // Request can be handled in this handler.
@@ -234,6 +243,7 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
         String canHandle = "false";
         if (Pattern.matches(REGEX_FOR_URLS_WITH_ORG_ID, requestPath) ||
                 Pattern.matches(REGEX_FOR_SCIM_USER_REQUESTS, requestPath) ||
+                (Pattern.matches(REGEX_FOR_ORG_SEARCH, requestPath) && HTTP_GET.equalsIgnoreCase(getHttpMethod)) ||
                 (Pattern.matches(REGEX_FOR_SCIM_GROUPS_GET, requestPath) && HTTP_GET.equalsIgnoreCase(getHttpMethod))) {
             canHandle = "true";
         } else if (Pattern.matches(REGEX_FOR_SCIM_USERS_GET, requestPath) && HTTP_GET.equalsIgnoreCase(getHttpMethod)) {
