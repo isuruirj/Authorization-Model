@@ -109,7 +109,11 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
                 validatePermissions(authorizationResult, user, permissionString, rootOrgId, tenantId);
             } else {
                 if ((Pattern.matches(REGEX_FOR_SCIM_GROUPS_GET, requestUri) &&
-                        HTTP_GET.equalsIgnoreCase(authorizationContext.getHttpMethods()))) {
+                        HTTP_GET.equalsIgnoreCase(authorizationContext.getHttpMethods())) ||
+                        (Pattern.matches(REGEX_FOR_SCIM_USERS_GET, requestUri) &&
+                                HTTP_GET.equalsIgnoreCase(authorizationContext.getHttpMethods()) &&
+                                !(queryString != null &&
+                                        Pattern.matches(REGEX_SCIM_USERS_FILTER_WITH_ORG, queryString)))) {
                     // Check whether the user has the permission for at least one organization or in the default model.
                     validatePermissions(authorizationResult, user, permissionString, tenantId);
                 } else if (Pattern.matches(REGEX_FOR_ORG_SEARCH, requestUri) &&
@@ -244,15 +248,9 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
         if (Pattern.matches(REGEX_FOR_URLS_WITH_ORG_ID, requestPath) ||
                 Pattern.matches(REGEX_FOR_SCIM_USER_REQUESTS, requestPath) ||
                 (Pattern.matches(REGEX_FOR_ORG_SEARCH, requestPath) && HTTP_GET.equalsIgnoreCase(getHttpMethod)) ||
-                (Pattern.matches(REGEX_FOR_SCIM_GROUPS_GET, requestPath) && HTTP_GET.equalsIgnoreCase(getHttpMethod))) {
+                (Pattern.matches(REGEX_FOR_SCIM_GROUPS_GET, requestPath) && HTTP_GET.equalsIgnoreCase(getHttpMethod)) ||
+                (Pattern.matches(REGEX_FOR_SCIM_USERS_GET, requestPath) && HTTP_GET.equalsIgnoreCase(getHttpMethod))) {
             canHandle = "true";
-        } else if (Pattern.matches(REGEX_FOR_SCIM_USERS_GET, requestPath) && HTTP_GET.equalsIgnoreCase(getHttpMethod)) {
-            if (queryParams != null && Pattern.matches(REGEX_SCIM_USERS_FILTER_WITH_ORG, queryParams)) {
-                canHandle = "true";
-            } else {
-                //SCIM users get from root level.
-                canHandle = "root";
-            }
         }
         return canHandle;
     }
