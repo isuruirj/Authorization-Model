@@ -51,15 +51,19 @@ import java.util.regex.Pattern;
 
 import static org.wso2.carbon.identity.auth.service.util.Constants.OAUTH2_ALLOWED_SCOPES;
 import static org.wso2.carbon.identity.auth.service.util.Constants.OAUTH2_VALIDATE_SCOPE;
+import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.ANY_ORG;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.CONDITION_SEPARATOR;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.FILTER_START;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.HTTP_GET;
+import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.HTTP_POST;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.ORGANIZATION_ID_DEFAULT_CLAIM_URI;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.ORGANIZATION_ID_URI;
+import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.ORGANIZATION_MGT_ADMIN_PERMISSION;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.ORGANIZATION_NAME_URI;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.ORGANIZATION_RESOURCE;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.QUERY_STRING_SEPARATOR;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_ORG_SEARCH;
+import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_ROLE_ASSIGNMENT;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_SCIM_GROUPS_GET;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_SCIM_USERS_GET;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_SCIM_USER_REQUESTS;
@@ -113,17 +117,23 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
                         (Pattern.matches(REGEX_FOR_SCIM_USERS_GET, requestUri) &&
                                 HTTP_GET.equalsIgnoreCase(authorizationContext.getHttpMethods()) &&
                                 !(queryString != null &&
-                                        Pattern.matches(REGEX_SCIM_USERS_FILTER_WITH_ORG, queryString)))) {
-                    // Check whether the user has the permission for at least one organization or in the default model.
-                    validatePermissions(authorizationResult, user, permissionString, tenantId);
-                } else if (Pattern.matches(REGEX_FOR_ORG_SEARCH, requestUri) &&
-                        !Pattern.matches(REGEX_FOR_URLS_WITH_ORG_ID, requestUri) &&
-                        HTTP_GET.equalsIgnoreCase(authorizationContext.getHttpMethods())) {
+                                        Pattern.matches(REGEX_SCIM_USERS_FILTER_WITH_ORG, queryString))) ||
+                        (Pattern.matches(REGEX_FOR_ORG_SEARCH, requestUri) &&
+                                !Pattern.matches(REGEX_FOR_URLS_WITH_ORG_ID, requestUri) &&
+                                HTTP_GET.equalsIgnoreCase(authorizationContext.getHttpMethods()))) {
                     /*
-                    If the request is a organizations search,
-                    check whether the user has permission for at least one organization.
+                     Check whether the user has the organization admin permission or
+                     permission for at least one organization or in the default model.
                      */
-                    validatePermissions(authorizationResult, user, permissionString, tenantId);
+                    validatePermissionsInDefaultPermissionTree(authorizationResult, user,
+                            ORGANIZATION_MGT_ADMIN_PERMISSION, tenantId);
+                    if (!(AuthorizationStatus.GRANT).equals(authorizationResult.getAuthorizationStatus())) {
+                        validatePermissions(authorizationResult, user, permissionString, ANY_ORG, tenantId);
+                    }
+                } else if (Pattern.matches(REGEX_FOR_ROLE_ASSIGNMENT, requestUri) &&
+                        HTTP_POST.equalsIgnoreCase(authorizationContext.getHttpMethods())) {
+                    validatePermissionsInDefaultPermissionTree(authorizationResult, user,
+                            ORGANIZATION_MGT_ADMIN_PERMISSION, tenantId);
                 } else {
                     // Request can be handled in this handler.
                     String orgId = retrieveOrganizationId(requestUri, authorizationContext.getHttpMethods(),
@@ -172,16 +182,22 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
             authorizationResult.setAuthorizationStatus(AuthorizationStatus.GRANT);
             return;
         }
-        boolean isUserAuthorized = OrganizationMgtAuthorizationManager.getInstance()
+        boolean isUserAuthorized = false;
+        if(StringUtils.equals(ANY_ORG,orgId)) {
+            isUserAuthorized = OrganizationMgtAuthorizationManager.getInstance()
+                    .isUserAuthorized(user, permissionString, CarbonConstants.UI_PERMISSION_ACTION, tenantId);
+        } else {
+            OrganizationMgtAuthorizationManager.getInstance()
                     .isUserAuthorized(user, permissionString, CarbonConstants.UI_PERMISSION_ACTION, orgId, tenantId);
+        }
         if (isUserAuthorized) {
             authorizationResult.setAuthorizationStatus(AuthorizationStatus.GRANT);
         }
     }
 
-    private void validatePermissions(AuthorizationResult authorizationResult, User user, String permissionString,
-                                     int tenantId)
-            throws org.wso2.carbon.user.api.UserStoreException {
+    private void validatePermissionsInDefaultPermissionTree(AuthorizationResult authorizationResult, User user,
+                                                            String permissionString, int tenantId)
+            throws UserStoreException {
 
         if (RESOURCE_PERMISSION_NONE.equalsIgnoreCase(permissionString)) {
             authorizationResult.setAuthorizationStatus(AuthorizationStatus.GRANT);
@@ -190,10 +206,9 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
         RealmService realmService = OrganizationMgtAuthzServiceHolder.getInstance().getRealmService();
         UserRealm tenantUserRealm = realmService.getTenantUserRealm(tenantId);
         AuthorizationManager authorizationManager = tenantUserRealm.getAuthorizationManager();
-        boolean isUserAuthorized = OrganizationMgtAuthorizationManager.getInstance()
-                .isUserAuthorized(user, permissionString, CarbonConstants.UI_PERMISSION_ACTION, tenantId)
-                || authorizationManager.isUserAuthorized(UserCoreUtil.addDomainToName(user.getUserName(),
-                user.getUserStoreDomain()), permissionString, CarbonConstants.UI_PERMISSION_ACTION);
+        boolean isUserAuthorized =
+                authorizationManager.isUserAuthorized(UserCoreUtil.addDomainToName(user.getUserName(),
+                        user.getUserStoreDomain()), permissionString, CarbonConstants.UI_PERMISSION_ACTION);
         if (isUserAuthorized) {
             authorizationResult.setAuthorizationStatus(AuthorizationStatus.GRANT);
         }
