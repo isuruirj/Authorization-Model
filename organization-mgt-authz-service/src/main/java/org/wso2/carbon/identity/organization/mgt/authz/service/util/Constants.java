@@ -47,6 +47,8 @@ public class Constants {
     public static final String SCIM_USERS_RESOURCE = "Users";
     public static final String REGEX_FOR_URLS_WITH_ORG_ID =
             "^(.)*(/api/identity/organization-mgt/v1.0/organizations/)[a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12}(.)*$";
+    public static final String REGEX_FOR_ROLE_ASSIGNMENT =
+            "^(.)*(/api/identity/organization-mgt/v1.0/organizations/)[a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12}(/roles)(.)*$";
     public static final String REGEX_FOR_ORG_SEARCH = "^(.)*(/api/identity/organization-mgt/v1.0/organizations)(.)*$";
     public static final String ORG_ID_REGEX = "[a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12}";
     public static final String REGEX_FOR_SCIM_USER_REQUESTS =
@@ -55,6 +57,8 @@ public class Constants {
     public static final String REGEX_FOR_SCIM_GROUPS_GET = "(.*)/scim2/Groups";
     public static final String REGEX_FOR_SCIM_USERS_GET = "(.*)/scim2/Users(.*)";
     public static final String HTTP_GET = "GET";
+    public static final String HTTP_POST = "POST";
+    public static final String ANY_ORG = "ANY";
     public static final String QUERY_STRING_SEPARATOR = "&";
     public static final String FILTER_START = "filter=";
     public static final String ORGANIZATION_ID_URI =
@@ -67,4 +71,6 @@ public class Constants {
             "^(.)*(filter=)(.)*(" + ORGANIZATION_ID_URI + "|" + ORGANIZATION_NAME_URI + ")(.)*$";
 
     public static final String ERROR_RETRIEVING_ROOT_ID = "Error while retrieving the root organization id.";
+
+    public static final String ORGANIZATION_MGT_ADMIN_PERMISSION = "/permission/admin/manage/identity/organizationmgt/admin";
 }
