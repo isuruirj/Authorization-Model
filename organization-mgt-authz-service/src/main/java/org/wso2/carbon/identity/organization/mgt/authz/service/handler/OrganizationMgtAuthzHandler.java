@@ -182,12 +182,12 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
             authorizationResult.setAuthorizationStatus(AuthorizationStatus.GRANT);
             return;
         }
-        boolean isUserAuthorized = false;
+        boolean isUserAuthorized;
         if(StringUtils.equals(ANY_ORG,orgId)) {
             isUserAuthorized = OrganizationMgtAuthorizationManager.getInstance()
                     .isUserAuthorized(user, permissionString, CarbonConstants.UI_PERMISSION_ACTION, tenantId);
         } else {
-            OrganizationMgtAuthorizationManager.getInstance()
+            isUserAuthorized = OrganizationMgtAuthorizationManager.getInstance()
                     .isUserAuthorized(user, permissionString, CarbonConstants.UI_PERMISSION_ACTION, orgId, tenantId);
         }
         if (isUserAuthorized) {
