@@ -139,7 +139,11 @@ public class OrganizationMgtAuthzValve extends ValveBase {
         }
         value.append('\"');
         response.setHeader(AUTH_HEADER_NAME, value.toString());
-        response.sendError(error);
+        if (HttpServletResponse.SC_FORBIDDEN == error) {
+            response.setStatus(error);
+        } else {
+            response.sendError(error);
+        }
     }
 
     /**
