@@ -45,6 +45,8 @@ public class Constants {
     public static final String URI_SPLITTER = "/";
     public static final String ORGANIZATION_RESOURCE = "organizations";
     public static final String SCIM_USERS_RESOURCE = "Users";
+    public static final String REGEX_FOR_GET_USER_BY_ORG_ID =
+            "^(.)*(/api/identity/organization-mgt/v1.0/organizations/)[a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12}$";
     public static final String REGEX_FOR_URLS_WITH_ORG_ID =
             "^(.)*(/api/identity/organization-mgt/v1.0/organizations/)[a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12}(.)*$";
     public static final String REGEX_FOR_ROLE_ASSIGNMENT =
