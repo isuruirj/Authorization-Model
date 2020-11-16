@@ -62,6 +62,7 @@ import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Const
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.ORGANIZATION_NAME_URI;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.ORGANIZATION_RESOURCE;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.QUERY_STRING_SEPARATOR;
+import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_GET_USER_BY_ORG_ID;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_ORG_SEARCH;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_ROLE_ASSIGNMENT;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_SCIM_GROUPS_GET;
@@ -122,8 +123,8 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
                                 !Pattern.matches(REGEX_FOR_URLS_WITH_ORG_ID, requestUri) &&
                                 HTTP_GET.equalsIgnoreCase(authorizationContext.getHttpMethods()))) {
                     /*
-                     Check whether the user has the organization admin permission or
-                     permission for at least one organization or in the default model.
+                     Check whether the user has the organizationmgt/admin permission in the default model or
+                     relevant permission for at least one organization.
                      */
                     validatePermissionsInDefaultPermissionTree(authorizationResult, user,
                             ORGANIZATION_MGT_ADMIN_PERMISSION, tenantId);
@@ -141,6 +142,16 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
                     if (orgId != null) {
                         if (StringUtils.isNotBlank(permissionString)) {
                             validatePermissions(authorizationResult, user, permissionString, orgId, tenantId);
+                            if (!(AuthorizationStatus.GRANT).equals(authorizationResult.getAuthorizationStatus()) &&
+                                    Pattern.matches(REGEX_FOR_GET_USER_BY_ORG_ID, requestUri) &&
+                                    HTTP_GET.equalsIgnoreCase(authorizationContext.getHttpMethods())) {
+                                /*
+                                Check whether the user has the organizationmgt/admin permission in the default model,
+                                if the request is GET organization by id.
+                                 */
+                                validatePermissionsInDefaultPermissionTree(authorizationResult, user,
+                                        ORGANIZATION_MGT_ADMIN_PERMISSION, tenantId);
+                            }
                         }
                     } else {
                         String errorMessage = "Error occurred while retrieving the organization id.";
