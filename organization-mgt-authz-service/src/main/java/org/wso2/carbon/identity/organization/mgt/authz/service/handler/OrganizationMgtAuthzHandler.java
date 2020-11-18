@@ -54,6 +54,7 @@ import static org.wso2.carbon.identity.auth.service.util.Constants.OAUTH2_VALIDA
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.ANY_ORG;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.CONDITION_SEPARATOR;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.FILTER_START;
+import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.HTTP_DELETE;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.HTTP_GET;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.HTTP_POST;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.ORGANIZATION_ID_DEFAULT_CLAIM_URI;
@@ -62,9 +63,10 @@ import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Const
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.ORGANIZATION_NAME_URI;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.ORGANIZATION_RESOURCE;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.QUERY_STRING_SEPARATOR;
+import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_ADMIN_ROLE_ASSIGNMENT_AND_REVOKE;
+import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_ADMIN_ROLE_MEMBERS_GET;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_GET_USER_BY_ORG_ID;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_ORG_SEARCH;
-import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_ROLE_ASSIGNMENT;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_SCIM_GROUPS_GET;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_SCIM_USERS_GET;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_SCIM_USER_REQUESTS;
@@ -108,7 +110,7 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
                 // Pass through from the valve. For now grant access. These requests will be handled in the backend.
                 authorizationResult.setAuthorizationStatus(AuthorizationStatus.GRANT);
             } else if (StringUtils.equals("root", canHandle)) {
-                // Retrieve the organizationId of ROOT org
+                // Retrieve the organizationId of ROOT org.
                 OrganizationMgtAuthzDAOImpl organizationMgtAuthzDAOImpl = new OrganizationMgtAuthzDAOImpl();
                 String rootOrgId = organizationMgtAuthzDAOImpl.getRootOrgId("ROOT", tenantId);
                 validatePermissions(authorizationResult, user, permissionString, rootOrgId, tenantId);
@@ -125,16 +127,15 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
                     /*
                      Check whether the user has the organizationmgt/admin permission in the default model or
                      relevant permission for at least one organization.
+                     - GET /scim2/Users without organization filtering
+                     - GET /scim2/Groups
+                     - GET /organizations
                      */
                     validatePermissionsInDefaultPermissionTree(authorizationResult, user,
                             ORGANIZATION_MGT_ADMIN_PERMISSION, tenantId);
                     if (!(AuthorizationStatus.GRANT).equals(authorizationResult.getAuthorizationStatus())) {
                         validatePermissions(authorizationResult, user, permissionString, ANY_ORG, tenantId);
                     }
-                } else if (Pattern.matches(REGEX_FOR_ROLE_ASSIGNMENT, requestUri) &&
-                        HTTP_POST.equalsIgnoreCase(authorizationContext.getHttpMethods())) {
-                    validatePermissionsInDefaultPermissionTree(authorizationResult, user,
-                            ORGANIZATION_MGT_ADMIN_PERMISSION, tenantId);
                 } else {
                     // Request can be handled in this handler.
                     String orgId = retrieveOrganizationId(requestUri, authorizationContext.getHttpMethods(),
@@ -143,11 +144,23 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
                         if (StringUtils.isNotBlank(permissionString)) {
                             validatePermissions(authorizationResult, user, permissionString, orgId, tenantId);
                             if (!(AuthorizationStatus.GRANT).equals(authorizationResult.getAuthorizationStatus()) &&
-                                    Pattern.matches(REGEX_FOR_GET_USER_BY_ORG_ID, requestUri) &&
-                                    HTTP_GET.equalsIgnoreCase(authorizationContext.getHttpMethods())) {
+                                    ((Pattern.matches(REGEX_FOR_GET_USER_BY_ORG_ID, requestUri) &&
+                                            HTTP_GET.equalsIgnoreCase(authorizationContext.getHttpMethods())) ||
+                                            (Pattern.matches(REGEX_FOR_ADMIN_ROLE_ASSIGNMENT_AND_REVOKE, requestUri) &&
+                                                    (HTTP_POST
+                                                            .equalsIgnoreCase(authorizationContext.getHttpMethods()) ||
+                                                            HTTP_DELETE.equalsIgnoreCase(
+                                                                    authorizationContext.getHttpMethods()))) ||
+                                            (Pattern.matches(REGEX_FOR_ADMIN_ROLE_MEMBERS_GET, requestUri) &&
+                                                    HTTP_GET.equalsIgnoreCase(
+                                                            authorizationContext.getHttpMethods())))) {
                                 /*
                                 Check whether the user has the organizationmgt/admin permission in the default model,
-                                if the request is GET organization by id.
+                                if the request is
+                                - GET /organizations/{organization-id}
+                                - POST /organizations/{organization-id}/roles
+                                - DELETE /organizations/{organization-id}/roles/{role-id}/users/{user-id}
+                                - GET /organizations/{organization-id}/roles/{role-id}/users
                                  */
                                 validatePermissionsInDefaultPermissionTree(authorizationResult, user,
                                         ORGANIZATION_MGT_ADMIN_PERMISSION, tenantId);
