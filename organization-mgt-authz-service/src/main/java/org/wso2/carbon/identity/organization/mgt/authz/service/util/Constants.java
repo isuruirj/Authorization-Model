@@ -52,7 +52,7 @@ public class Constants {
     public static final String REGEX_FOR_ADMIN_ROLE_ASSIGNMENT_AND_REVOKE =
             "^(.)*(/api/identity/organization-mgt/v1.0/organizations/)[a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12}(/roles)(.)*$";
     public static final String REGEX_FOR_ADMIN_ROLE_MEMBERS_GET =
-            "^(.)*(/api/identity/organization-mgt/v1.0/organizations/)[a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12}(/roles/)(.)*(/users)$";
+            "^(.)*(/api/identity/organization-mgt/v1.0/organizations/)[a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12}(/roles/)(.)*(/users)(.)*$";
     public static final String REGEX_FOR_ORG_SEARCH = "^(.)*(/api/identity/organization-mgt/v1.0/organizations)(.)*$";
     public static final String ORG_ID_REGEX = "[a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12}";
     public static final String REGEX_FOR_SCIM_USER_REQUESTS =
