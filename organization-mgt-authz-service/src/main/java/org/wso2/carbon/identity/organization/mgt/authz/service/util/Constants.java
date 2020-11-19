@@ -45,7 +45,7 @@ public class Constants {
     public static final String URI_SPLITTER = "/";
     public static final String ORGANIZATION_RESOURCE = "organizations";
     public static final String SCIM_USERS_RESOURCE = "Users";
-    public static final String REGEX_FOR_GET_USER_BY_ORG_ID =
+    public static final String REGEX_FOR_GET_ORG_BY_ORG_ID =
             "^(.)*(/api/identity/organization-mgt/v1.0/organizations/)[a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12}$";
     public static final String REGEX_FOR_URLS_WITH_ORG_ID =
             "^(.)*(/api/identity/organization-mgt/v1.0/organizations/)[a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12}(.)*$";
@@ -59,6 +59,8 @@ public class Constants {
             "^(.)*(/scim2/Users/)[a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12}(.)*$";
     public static final String ORGANIZATION_ID_DEFAULT_CLAIM_URI = "http://wso2.org/claims/organizationId";
     public static final String REGEX_FOR_SCIM_GROUPS_GET = "(.*)/scim2/Groups";
+    public static final String REGEX_FOR_SCIM_GROUPS_GET_BY_ID =
+            "^(.*)(/scim2/Groups/)[a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12}(.)*$";
     public static final String REGEX_FOR_SCIM_USERS_GET = "(.*)/scim2/Users(.*)";
     public static final String HTTP_GET = "GET";
     public static final String HTTP_POST = "POST";
