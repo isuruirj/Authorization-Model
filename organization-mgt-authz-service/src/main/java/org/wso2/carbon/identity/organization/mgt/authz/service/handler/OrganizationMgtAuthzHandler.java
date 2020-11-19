@@ -45,7 +45,6 @@ import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
@@ -65,9 +64,10 @@ import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Const
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.QUERY_STRING_SEPARATOR;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_ADMIN_ROLE_ASSIGNMENT_AND_REVOKE;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_ADMIN_ROLE_MEMBERS_GET;
-import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_GET_USER_BY_ORG_ID;
+import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_GET_ORG_BY_ORG_ID;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_ORG_SEARCH;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_SCIM_GROUPS_GET;
+import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_SCIM_GROUPS_GET_BY_ID;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_SCIM_USERS_GET;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_SCIM_USER_REQUESTS;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.REGEX_FOR_URLS_WITH_ORG_ID;
@@ -117,6 +117,8 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
             } else {
                 if ((Pattern.matches(REGEX_FOR_SCIM_GROUPS_GET, requestUri) &&
                         HTTP_GET.equalsIgnoreCase(authorizationContext.getHttpMethods())) ||
+                        (Pattern.matches(REGEX_FOR_SCIM_GROUPS_GET_BY_ID, requestUri) &&
+                                HTTP_GET.equalsIgnoreCase(authorizationContext.getHttpMethods())) ||
                         (Pattern.matches(REGEX_FOR_SCIM_USERS_GET, requestUri) &&
                                 HTTP_GET.equalsIgnoreCase(authorizationContext.getHttpMethods()) &&
                                 !(queryString != null &&
@@ -129,6 +131,7 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
                      relevant permission for at least one organization.
                      - GET /scim2/Users without organization filtering
                      - GET /scim2/Groups
+                     - GET /scim2/Groups/{group-id}
                      - GET /organizations
                      */
                     validatePermissionsInDefaultPermissionTree(authorizationResult, user,
@@ -144,7 +147,7 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
                         if (StringUtils.isNotBlank(permissionString)) {
                             validatePermissions(authorizationResult, user, permissionString, orgId, tenantId);
                             if (!(AuthorizationStatus.GRANT).equals(authorizationResult.getAuthorizationStatus()) &&
-                                    ((Pattern.matches(REGEX_FOR_GET_USER_BY_ORG_ID, requestUri) &&
+                                    ((Pattern.matches(REGEX_FOR_GET_ORG_BY_ORG_ID, requestUri) &&
                                             HTTP_GET.equalsIgnoreCase(authorizationContext.getHttpMethods())) ||
                                             (Pattern.matches(REGEX_FOR_ADMIN_ROLE_ASSIGNMENT_AND_REVOKE, requestUri) &&
                                                     (HTTP_POST
@@ -153,11 +156,15 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
                                                                     authorizationContext.getHttpMethods()))) ||
                                             (Pattern.matches(REGEX_FOR_ADMIN_ROLE_MEMBERS_GET, requestUri) &&
                                                     HTTP_GET.equalsIgnoreCase(
+                                                            authorizationContext.getHttpMethods())) ||
+                                            (Pattern.matches(REGEX_FOR_SCIM_USER_REQUESTS, requestUri) &&
+                                                    HTTP_GET.equalsIgnoreCase(
                                                             authorizationContext.getHttpMethods())))) {
                                 /*
                                 Check whether the user has the organizationmgt/admin permission in the default model,
                                 if the request is
                                 - GET /organizations/{organization-id}
+                                - GET /scim2/Users/{user-id}
                                 - POST /organizations/{organization-id}/roles
                                 - DELETE /organizations/{organization-id}/roles/{role-id}/users/{user-id}
                                 - GET /organizations/{organization-id}/roles/{role-id}/users
@@ -288,6 +295,8 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
                 Pattern.matches(REGEX_FOR_SCIM_USER_REQUESTS, requestPath) ||
                 (Pattern.matches(REGEX_FOR_ORG_SEARCH, requestPath) && HTTP_GET.equalsIgnoreCase(getHttpMethod)) ||
                 (Pattern.matches(REGEX_FOR_SCIM_GROUPS_GET, requestPath) && HTTP_GET.equalsIgnoreCase(getHttpMethod)) ||
+                (Pattern.matches(REGEX_FOR_SCIM_GROUPS_GET_BY_ID, requestPath) &&
+                        HTTP_GET.equalsIgnoreCase(getHttpMethod)) ||
                 (Pattern.matches(REGEX_FOR_SCIM_USERS_GET, requestPath) && HTTP_GET.equalsIgnoreCase(getHttpMethod))) {
             canHandle = "true";
         }
