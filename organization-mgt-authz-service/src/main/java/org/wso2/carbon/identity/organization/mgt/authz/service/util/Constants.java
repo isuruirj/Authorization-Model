@@ -49,7 +49,7 @@ public class Constants {
             "^(.)*(/api/identity/organization-mgt/v1.0/organizations/)[a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12}$";
     public static final String REGEX_FOR_URLS_WITH_ORG_ID =
             "^(.)*(/api/identity/organization-mgt/v1.0/organizations/)[a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12}(.)*$";
-    public static final String REGEX_FOR_ADMIN_ROLE_ASSIGNMENT_AND_REVOKE =
+    public static final String REGEX_FOR_ADMIN_ROLE_ASSIGNMENT_REVOKE_AND_UPDATE =
             "^(.)*(/api/identity/organization-mgt/v1.0/organizations/)[a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12}(/roles)(.)*$";
     public static final String REGEX_FOR_ADMIN_ROLE_MEMBERS_GET =
             "^(.)*(/api/identity/organization-mgt/v1.0/organizations/)[a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12}(/roles/)(.)*(/users)(.)*$";
@@ -65,6 +65,7 @@ public class Constants {
     public static final String HTTP_GET = "GET";
     public static final String HTTP_POST = "POST";
     public static final String HTTP_DELETE = "DELETE";
+    public static final String HTTP_PATCH = "PATCH";
     public static final String ANY_ORG = "ANY";
     public static final String QUERY_STRING_SEPARATOR = "&";
     public static final String FILTER_START = "filter=";
