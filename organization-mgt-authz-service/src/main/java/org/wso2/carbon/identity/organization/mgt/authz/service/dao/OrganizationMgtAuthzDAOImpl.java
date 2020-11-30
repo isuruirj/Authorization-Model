@@ -90,7 +90,6 @@ public class OrganizationMgtAuthzDAOImpl implements OrganizationMgtAuthzDAO {
                                 preparedStatement.setString(++parameterIndex, orgId);
                                 preparedStatement.setString(++parameterIndex, userID);
                                 preparedStatement.setInt(++parameterIndex, tenantId);
-                                preparedStatement.setInt(++parameterIndex, 3);
                                 for (String permission : allowedPermissions) {
                                     preparedStatement.setString(++parameterIndex, permission);
                                 }
@@ -131,7 +130,6 @@ public class OrganizationMgtAuthzDAOImpl implements OrganizationMgtAuthzDAO {
                         int parameterIndex = 0;
                         preparedStatement.setString(++parameterIndex, userID);
                         preparedStatement.setInt(++parameterIndex, tenantId);
-                        preparedStatement.setInt(++parameterIndex, 3);
                         for (String permission : allowedPermissions) {
                             preparedStatement.setString(++parameterIndex, permission);
                         }
