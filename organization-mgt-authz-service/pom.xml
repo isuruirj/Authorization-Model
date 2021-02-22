@@ -25,7 +25,7 @@
     <parent>
         <artifactId>authorization-model</artifactId>
         <groupId>org.wso2.carbon.identity.auth.rest</groupId>
-        <version>1.0</version>
+        <version>0.23-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -51,7 +51,7 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.organization.mgt.core</artifactId>
-            <version>5.17.5</version>
+            <version>${org.wso2.carbon.identity.organization.mgt.version}</version>
         </dependency>
     </dependencies>
 
@@ -130,13 +130,14 @@
         <org.wso2.carbon.identity.auth.service.version.range>[1.2.0, 2.0.0)
         </org.wso2.carbon.identity.auth.service.version.range>
 
-
         <!-- OSGi framework component version -->
         <osgi.service.component.imp.pkg.version.range>[1.2.1, 2.0.0)</osgi.service.component.imp.pkg.version.range>
         <osgi.service.http.imp.pkg.version.range>[1.2.1, 2.0.0)</osgi.service.http.imp.pkg.version.range>
         <osgi.framework.imp.pkg.version.range>[1.7.0, 2.0.0)</osgi.framework.imp.pkg.version.range>
         <osgi.util.tracker.imp.pkg.version.range>[1.5.1, 2.0.0)</osgi.util.tracker.imp.pkg.version.range>
 
-
+        <org.wso2.carbon.identity.organization.mgt.version>
+            0.23-SNAPSHOT
+        </org.wso2.carbon.identity.organization.mgt.version>
     </properties>
 </project>
