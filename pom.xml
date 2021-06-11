@@ -33,7 +33,7 @@
     <description>
         Authorization model for organization management feature.
     </description>
-    <version>0.24-SNAPSHOT</version>
+    <version>0.24</version>
 
     <modules>
         <module>organization-mgt-authz-valve</module>
@@ -45,7 +45,7 @@
         <developerConnection>scm:git:https://github.com/AnuradhaSK/Authorization-Model
         </developerConnection>
         <connection>scm:git:https://github.com/AnuradhaSK/Authorization-Model</connection>
-        <tag>HEAD</tag>
+        <tag>v0.24</tag>
     </scm>
 
     <build>
