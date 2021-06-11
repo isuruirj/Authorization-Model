@@ -23,7 +23,7 @@
     <parent>
         <artifactId>authorization-model</artifactId>
         <groupId>org.wso2.carbon.identity.auth.rest</groupId>
-        <version>0.24</version>
+        <version>0.25-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
