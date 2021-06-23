@@ -23,6 +23,31 @@ package org.wso2.carbon.identity.organization.mgt.authz.service.util;
  */
 public class Constants {
 
+    public enum ErrorMessage {
+        ERROR_NOT_AUTHORIZED("ORGUAUTH_00001", "Error occurred while retrieving the organization id."),
+        ERROR_BAD_REQUEST("ORGUAUTH_00002","Error occurred due to bad request"),
+        ERROR_FORBIDDEN_REQUEST("ORGUAUTH_00003","Error occured due to forbidden request.");
+
+        private final String code;
+        private final String message;
+
+        ErrorMessage(String code, String message) {
+
+            this.code = code;
+            this.message = message;
+        }
+
+        public String getMessage() {
+
+            return this.message;
+        }
+
+        public String getCode() {
+
+            return this.code;
+        }
+    }
+
     // SQL Constants.
     public static final String GET_IS_USER_ALLOWED = "SELECT COUNT(1) FROM ORG_AUTHZ_VIEW\n" +
             "WHERE ORG_ID = ? AND UM_USER_ID = ? AND UM_TENANT_ID = ? AND \n" +

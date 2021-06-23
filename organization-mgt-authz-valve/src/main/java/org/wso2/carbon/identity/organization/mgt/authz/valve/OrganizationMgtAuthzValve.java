@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.authz.service.AuthorizationManager;
 import org.wso2.carbon.identity.authz.service.AuthorizationResult;
 import org.wso2.carbon.identity.authz.service.AuthorizationStatus;
 import org.wso2.carbon.identity.authz.service.exception.AuthzServiceServerException;
+import org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants;
 import org.wso2.carbon.identity.organization.mgt.authz.valve.internal.OrganizationMgtAuthzValveServiceHolder;
 import org.wso2.carbon.identity.organization.mgt.authz.valve.util.Utils;
 import org.wso2.carbon.identity.organization.mgt.authz.service.OrgMgtAuthorizationContext;
@@ -47,6 +48,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.auth.service.util.Constants.OAUTH2_ALLOWED_SCOPES;
 import static org.wso2.carbon.identity.auth.service.util.Constants.OAUTH2_VALIDATE_SCOPE;
+import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.ErrorMessage.ERROR_NOT_AUTHORIZED;
 
 /**
  * The valve for organization mgt related authorization.
@@ -119,13 +121,35 @@ public class OrganizationMgtAuthzValve extends ValveBase {
                 if (authorizationResult.getAuthorizationStatus().equals(AuthorizationStatus.GRANT)) {
                     getNext().invoke(request, response);
                 } else {
-                    handleErrorResponse(authenticationContext, response, HttpServletResponse.SC_FORBIDDEN);
+                    throw new AuthzServiceServerException(ERROR_NOT_AUTHORIZED.getCode());
                 }
             } catch (AuthzServiceServerException e) {
-                handleErrorResponse(authenticationContext, response, HttpServletResponse.SC_BAD_REQUEST);
+                if (StringUtils.equalsIgnoreCase(e.getMessage(), ERROR_NOT_AUTHORIZED.getCode())) {
+                    handleErrorResponse(authenticationContext, response, MapErrorCodes(ERROR_NOT_AUTHORIZED.getCode()));
+                } else {
+                    handleErrorResponse(authenticationContext, response, HttpServletResponse.SC_BAD_REQUEST);
+                }
             }
         } else {
             getNext().invoke(request, response);
+        }
+    }
+
+    /*
+    * @param code Error code
+    * @return error code
+    * */
+    private int MapErrorCodes(String code) {
+
+        switch (code) {
+            case "ORGUAUTH_00001":
+                return HttpServletResponse.SC_UNAUTHORIZED;
+            case "ORGUAUTH_00002":
+                return HttpServletResponse.SC_BAD_REQUEST;
+            case "ORGUAUTH_00003":
+                return HttpServletResponse.SC_FORBIDDEN;
+            default:
+                return -1;
         }
     }
 

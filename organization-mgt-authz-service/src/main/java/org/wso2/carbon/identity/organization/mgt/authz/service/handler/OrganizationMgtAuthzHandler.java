@@ -52,6 +52,7 @@ import static org.wso2.carbon.identity.auth.service.util.Constants.OAUTH2_ALLOWE
 import static org.wso2.carbon.identity.auth.service.util.Constants.OAUTH2_VALIDATE_SCOPE;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.ANY_ORG;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.CONDITION_SEPARATOR;
+import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.ErrorMessage.ERROR_NOT_AUTHORIZED;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.FILTER_START;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.HTTP_DELETE;
 import static org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants.HTTP_GET;
@@ -179,9 +180,8 @@ public class OrganizationMgtAuthzHandler extends AuthorizationHandler {
                             }
                         }
                     } else {
-                        String errorMessage = "Error occurred while retrieving the organization id.";
-                        log.error(errorMessage);
-                        throw new AuthzServiceServerException(errorMessage);
+                        log.error(ERROR_NOT_AUTHORIZED.getCode() + ":" + ERROR_NOT_AUTHORIZED.getMessage());
+                        throw new AuthzServiceServerException(ERROR_NOT_AUTHORIZED.getCode());
                     }
                 }
             }
