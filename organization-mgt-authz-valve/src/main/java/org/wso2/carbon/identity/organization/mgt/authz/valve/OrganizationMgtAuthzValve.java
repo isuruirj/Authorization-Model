@@ -33,7 +33,6 @@ import org.wso2.carbon.identity.authz.service.AuthorizationManager;
 import org.wso2.carbon.identity.authz.service.AuthorizationResult;
 import org.wso2.carbon.identity.authz.service.AuthorizationStatus;
 import org.wso2.carbon.identity.authz.service.exception.AuthzServiceServerException;
-import org.wso2.carbon.identity.organization.mgt.authz.service.util.Constants;
 import org.wso2.carbon.identity.organization.mgt.authz.valve.internal.OrganizationMgtAuthzValveServiceHolder;
 import org.wso2.carbon.identity.organization.mgt.authz.valve.util.Utils;
 import org.wso2.carbon.identity.organization.mgt.authz.service.OrgMgtAuthorizationContext;
@@ -125,7 +124,7 @@ public class OrganizationMgtAuthzValve extends ValveBase {
                 }
             } catch (AuthzServiceServerException e) {
                 if (StringUtils.equalsIgnoreCase(e.getMessage(), ERROR_NOT_AUTHORIZED.getCode())) {
-                    handleErrorResponse(authenticationContext, response, MapErrorCodes(ERROR_NOT_AUTHORIZED.getCode()));
+                    handleErrorResponse(authenticationContext, response, mapErrorCodes(ERROR_NOT_AUTHORIZED.getCode()));
                 } else {
                     handleErrorResponse(authenticationContext, response, HttpServletResponse.SC_BAD_REQUEST);
                 }
@@ -139,7 +138,7 @@ public class OrganizationMgtAuthzValve extends ValveBase {
     * @param code Error code
     * @return error code
     * */
-    private int MapErrorCodes(String code) {
+    private int mapErrorCodes(String code) {
 
         switch (code) {
             case "ORGUAUTH_00001":
