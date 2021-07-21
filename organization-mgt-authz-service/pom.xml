@@ -133,7 +133,6 @@
         <osgi.service.http.imp.pkg.version.range>[1.2.1, 2.0.0)</osgi.service.http.imp.pkg.version.range>
         <osgi.framework.imp.pkg.version.range>[1.7.0, 2.0.0)</osgi.framework.imp.pkg.version.range>
         <osgi.util.tracker.imp.pkg.version.range>[1.5.1, 2.0.0)</osgi.util.tracker.imp.pkg.version.range>
-
         <org.wso2.carbon.identity.organization.mgt.version>0.24</org.wso2.carbon.identity.organization.mgt.version>
     </properties>
 </project>
