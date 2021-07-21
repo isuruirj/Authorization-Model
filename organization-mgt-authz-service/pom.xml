@@ -31,12 +31,6 @@
     <packaging>bundle</packaging>
 
     <dependencies>
-        <!--new dependency for edu.umd.cs.findbugs.annotations-->
-        <dependency>
-            <groupId>com.google.code.findbugs</groupId>
-            <artifactId>findbugs-annotations</artifactId>
-            <version>${com.google.code.findbugs.version}</version>
-        </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.auth.rest</groupId>
             <artifactId>org.wso2.carbon.identity.authz.service</artifactId>
@@ -139,7 +133,6 @@
         <osgi.service.http.imp.pkg.version.range>[1.2.1, 2.0.0)</osgi.service.http.imp.pkg.version.range>
         <osgi.framework.imp.pkg.version.range>[1.7.0, 2.0.0)</osgi.framework.imp.pkg.version.range>
         <osgi.util.tracker.imp.pkg.version.range>[1.5.1, 2.0.0)</osgi.util.tracker.imp.pkg.version.range>
-        <com.google.code.findbugs.version>3.0.1</com.google.code.findbugs.version>
         <org.wso2.carbon.identity.organization.mgt.version>0.24</org.wso2.carbon.identity.organization.mgt.version>
     </properties>
 </project>
