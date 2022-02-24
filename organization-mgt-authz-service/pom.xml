@@ -23,7 +23,7 @@
     <parent>
         <artifactId>authorization-model</artifactId>
         <groupId>org.wso2.carbon.identity.auth.rest</groupId>
-        <version>0.26-SNAPSHOT</version>
+        <version>0.26</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -50,6 +50,11 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.organization.mgt.core</artifactId>
             <version>${org.wso2.carbon.identity.organization.mgt.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>annotations</artifactId>
+            <version>3.0.1</version>
         </dependency>
     </dependencies>
 
@@ -106,14 +111,6 @@
                     </instructions>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>8</source>
-                    <target>8</target>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
 
@@ -133,6 +130,6 @@
         <osgi.service.http.imp.pkg.version.range>[1.2.1, 2.0.0)</osgi.service.http.imp.pkg.version.range>
         <osgi.framework.imp.pkg.version.range>[1.7.0, 2.0.0)</osgi.framework.imp.pkg.version.range>
         <osgi.util.tracker.imp.pkg.version.range>[1.5.1, 2.0.0)</osgi.util.tracker.imp.pkg.version.range>
-        <org.wso2.carbon.identity.organization.mgt.version>0.25</org.wso2.carbon.identity.organization.mgt.version>
+        <org.wso2.carbon.identity.organization.mgt.version>0.26</org.wso2.carbon.identity.organization.mgt.version>
     </properties>
 </project>
